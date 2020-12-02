@@ -15,8 +15,8 @@ defmodule Conway.GridTest do
       s = "100\n011\n"
 
       assert Grid.from_string(s) == {:ok, [[true, false, false], [false, true, true]]}
-      assert Grid.from_string(s, "_") == {:ok, [[true, true, true], [true, true, true]]}
-      assert Grid.from_string(s, "1") == {:ok, [[false, true, true], [true, false, false]]}
+      assert Grid.from_string(s, dead: "_") == {:ok, [[true, true, true], [true, true, true]]}
+      assert Grid.from_string(s, dead: "1") == {:ok, [[false, true, true], [true, false, false]]}
 
       assert Grid.from_string("0101") == {:ok, [[false, true, false, true]]}
       assert Grid.from_string("0") == {:ok, [[false]]}

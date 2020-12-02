@@ -46,7 +46,9 @@ defmodule Conway.Grid do
     for _ <- 1..height, do: for(_ <- 1..width, do: false)
   end
 
-  def from_string(s, dead_char \\ @default_chars.dead) do
+  def from_string(s, options \\ []) do
+    dead_char = Keyword.get(options, :dead, @default_chars.dead)
+
     rows = String.split(s, "\n", trim: true)
 
     if length(rows) == 0 do
@@ -68,8 +70,8 @@ defmodule Conway.Grid do
     end
   end
 
-  def from_string!(s, dead_char \\ @default_chars.dead) do
-    case from_string(s, dead_char) do
+  def from_string!(s, options \\ []) do
+    case from_string(s, options) do
       {:ok, grid} -> grid
       :error -> raise Enum.EmptyError
     end
