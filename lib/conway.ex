@@ -6,20 +6,20 @@ defmodule Conway do
   alias Conway.Grid
 
   @pattern_blinker """
-  00000
-  00100
-  00100
-  00100
-  00000
+  .....
+  ..*..
+  ..*..
+  ..*..
+  .....
   """
 
   @pattern_toad """
-  000000
-  000000
-  001110
-  011100
-  000000
-  000000
+  ......
+  ......
+  ..***.
+  .***..
+  ......
+  ......
   """
 
   def start(_type, _args) do
@@ -39,15 +39,10 @@ defmodule Conway do
 end
 
 defmodule Conway.Grid do
-  @directions [{-1, -1}, {0, -1}, {1, -1}, {1, 0}, {1, 1}, {0, 1}, {-1, 1}, {-1, 0}]
-  @default_chars %{dead: "0", live: "1"}
-
-  def empty(width, height) do
-    for _ <- 1..height, do: for(_ <- 1..width, do: false)
-  end
+  @strconv_opts %{dead_char: ".", alive_char: "*"}
 
   def from_string(s, options \\ []) do
-    dead_char = Keyword.get(options, :dead, @default_chars.dead)
+    dead_char = Keyword.get(options, :dead_char, @strconv_opts.dead_char)
 
     rows = String.split(s, "\n", trim: true)
 
@@ -78,7 +73,7 @@ defmodule Conway.Grid do
   end
 
   def to_string(grid, options \\ []) do
-    %{dead: dead, live: live} = Enum.into(options, @default_chars)
+    %{dead_char: dead, alive_char: live} = Enum.into(options, @strconv_opts)
 
     s =
       Enum.map_join(grid, "\n", fn row ->
@@ -128,9 +123,10 @@ defmodule Conway.Grid do
     end
   end
 
+  @deltas [{-1, -1}, {0, -1}, {1, -1}, {1, 0}, {1, 1}, {0, 1}, {-1, 1}, {-1, 0}]
   def get_neighbors(grid, {x, y}) do
     if in_bounds(grid, {x, y}) do
-      {:ok, Enum.map(@directions, fn {dx, dy} -> get_cell(grid, {x + dx, y + dy}) end)}
+      {:ok, Enum.map(@deltas, fn {dx, dy} -> get_cell(grid, {x + dx, y + dy}) end)}
     else
       :error
     end

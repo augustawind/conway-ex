@@ -12,39 +12,43 @@ defmodule Conway.GridTest do
 
   describe "from/to string conversion" do
     test "Grid#from_string" do
-      s = "100\n011\n"
+      s = "*..\n.**\n"
 
       assert Grid.from_string(s) == {:ok, [[true, false, false], [false, true, true]]}
-      assert Grid.from_string(s, dead: "_") == {:ok, [[true, true, true], [true, true, true]]}
-      assert Grid.from_string(s, dead: "1") == {:ok, [[false, true, true], [true, false, false]]}
 
-      assert Grid.from_string("0101") == {:ok, [[false, true, false, true]]}
-      assert Grid.from_string("0") == {:ok, [[false]]}
+      assert Grid.from_string(s, dead_char: "_") ==
+               {:ok, [[true, true, true], [true, true, true]]}
+
+      assert Grid.from_string(s, dead_char: "*") ==
+               {:ok, [[false, true, true], [true, false, false]]}
+
+      assert Grid.from_string(".*.*") == {:ok, [[false, true, false, true]]}
+      assert Grid.from_string(".") == {:ok, [[false]]}
       assert Grid.from_string("") == :error
       assert Grid.from_string("\n\n") == :error
     end
 
     test "Grid#to_string" do
-      grid = Grid.from_string!("110\n101\n001\n")
+      grid = Grid.from_string!("**.\n*.*\n..*\n")
 
       assert Grid.to_string(grid) == """
-             110
-             101
-             001
-             """
-
-      assert Grid.to_string(grid, dead: ".", live: "*") == """
              **.
              *.*
              ..*
              """
 
-      assert Grid.to_string([[false]]) == "0\n"
+      assert Grid.to_string(grid, dead_char: "0", alive_char: "1") == """
+             110
+             101
+             001
+             """
+
+      assert Grid.to_string([[false]]) == ".\n"
     end
   end
 
   describe "querying cells" do
-    @grid Grid.from_string!("0110\n1001\n1101")
+    @grid Grid.from_string!(".**.\n*..*\n**.*")
 
     test "Grid#in_bounds" do
       assert Grid.in_bounds(@grid, {0, 0})
@@ -72,10 +76,10 @@ defmodule Conway.GridTest do
 
   describe "determining neighboring cells" do
     @grid Grid.from_string!("""
-          00000
-          00111
-          01110
-          00000
+          .....
+          ..***
+          .***.
+          .....
           """)
 
     test "Grid#get_neighbors" do
@@ -101,62 +105,62 @@ defmodule Conway.GridTest do
     @grid %{
       toad: {
         Grid.from_string!("""
-        000000
-        000000
-        001110
-        011100
-        000000
-        000000
+        ......
+        ......
+        ..***.
+        .***..
+        ......
+        ......
         """),
         Grid.from_string!("""
-        000000
-        000100
-        010010
-        010010
-        001000
-        000000
+        ......
+        ...*..
+        .*..*.
+        .*..*.
+        ..*...
+        ......
         """),
         Grid.from_string!("""
-        000000
-        000000
-        001110
-        011100
-        000000
-        000000
+        ......
+        ......
+        ..***.
+        .***..
+        ......
+        ......
         """)
       },
       glider: {
         Grid.from_string!("""
-        000000
-        001000
-        000100
-        011100
-        000000
-        000000
+        ......
+        ..*...
+        ...*..
+        .***..
+        ......
+        ......
         """),
         Grid.from_string!("""
-        000000
-        000000
-        010100
-        001100
-        001000
-        000000
+        ......
+        ......
+        .*.*..
+        ..**..
+        ..*...
+        ......
         """),
         Grid.from_string!("""
-        000000
-        000000
-        000100
-        010100
-        001100
-        000000
+        ......
+        ......
+        ...*..
+        .*.*..
+        ..**..
+        ......
         """),
         Grid.from_string!("""
-        000000
-        000000
-        001000
-        000110
-        001100
-        000000
+        ......
+        ......
+        ..*...
+        ...**.
+        ..**..
+        ......
         """)
       }
     }
