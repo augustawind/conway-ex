@@ -7,7 +7,7 @@ defmodule Conway.Grid do
     rows = String.split(s, "\n", trim: true)
 
     if length(rows) == 0 do
-      :error
+      {:error, "grid must have at least one row"}
     else
       width = rows |> Enum.map(&String.length/1) |> Enum.max()
 
@@ -28,7 +28,7 @@ defmodule Conway.Grid do
   def from_string!(s, options \\ []) do
     case from_string(s, options) do
       {:ok, grid} -> grid
-      :error -> raise Enum.EmptyError
+      _error -> raise Enum.EmptyError
     end
   end
 
@@ -61,14 +61,14 @@ defmodule Conway.Grid do
     end)
   end
 
-  def next_state?(grid, {x, y}, cell) do
+  def next_state?(grid, {x, y}, alive?) do
     case count_live_neighbors(grid, {x, y}) do
-      {:ok, live_neighbors} ->
+      {:ok, n} ->
         {:ok,
-         if cell do
-           live_neighbors == 2 or live_neighbors == 3
+         if alive? do
+           n == 2 or n == 3
          else
-           live_neighbors == 3
+           n == 3
          end}
 
       :error ->

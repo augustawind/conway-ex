@@ -19,8 +19,8 @@ defmodule Conway.GridTest do
 
       assert Grid.from_string(".*.*") == {:ok, [[false, true, false, true]]}
       assert Grid.from_string(".") == {:ok, [[false]]}
-      assert Grid.from_string("") == :error
-      assert Grid.from_string("\n\n") == :error
+      assert match?({:error, _}, Grid.from_string(""))
+      assert match?({:error, _}, Grid.from_string("\n\n"))
     end
 
     test "Grid#to_string" do

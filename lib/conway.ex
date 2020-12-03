@@ -23,17 +23,22 @@ defmodule Conway do
   """
 
   def start(_type, _args) do
-    IO.puts("~ TOAD ~\n----------\n")
-    {:ok, grid} = Grid.from_string(@pattern_toad)
-    IO.puts(Grid.to_string(grid))
-    grid = Grid.step(grid)
-    IO.puts("\n" <> Grid.to_string(grid))
+    # IO.puts("~ TOAD ~\n----------\n")
+    # {:ok, grid} = Grid.from_string(@pattern_toad)
+    # IO.puts(Grid.to_string(grid))
+    # grid = Grid.step(grid)
+    # IO.puts("\n" <> Grid.to_string(grid))
 
-    {:ok, grid} = Grid.from_string(@pattern_blinker)
-    IO.puts("\n~ BLINKER ~\n----------\n")
-    IO.puts(Grid.to_string(grid))
-    grid = Grid.step(grid)
-    IO.puts("\n" <> Grid.to_string(grid))
+    # {:ok, grid} = Grid.from_string(@pattern_blinker)
+    # IO.puts("\n~ BLINKER ~\n----------\n")
+    # IO.puts(Grid.to_string(grid))
+    # grid = Grid.step(grid)
+    # IO.puts("\n" <> Grid.to_string(grid))
     Task.start(fn -> nil end)
+  end
+
+  def run(grid, opts) do
+    IO.inspect(grid)
+    IO.inspect(opts)
   end
 end

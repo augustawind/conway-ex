@@ -7,8 +7,13 @@ defmodule Conway.MixProject do
       version: "0.1.0",
       elixir: "~> 1.11",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      escript: escript()
     ]
+  end
+
+  def escript do
+    [main_module: Conway.Cli]
   end
 
   # Run "mix help compile.app" to learn about applications.
