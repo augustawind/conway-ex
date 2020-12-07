@@ -4,7 +4,7 @@ defmodule Conway do
   """
 
   def run(grid, options \\ []) do
-    print_grid(grid)
+    print_grid(grid, options)
     main_loop(grid, options)
   end
 
@@ -12,10 +12,13 @@ defmodule Conway do
     receive do
     after
       500 ->
-        grid = Conway.Grid.step(grid)
-        IO.puts("")
-        print_grid(grid, options)
-        main_loop(grid, options)
+        case Conway.Grid.step(grid) do
+          nil -> IO.puts("\nSimulation has become stable.")
+          grid ->
+            IO.puts("")
+            print_grid(grid, options)
+            main_loop(grid, options)
+        end
     end
   end
 

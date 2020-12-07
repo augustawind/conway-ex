@@ -1,7 +1,6 @@
 defmodule Conway.Cli do
-  @progname "conway"
-
   @switches [
+    help: :boolean,
     file: :string,
     pattern: :string,
     random: :boolean,
@@ -12,6 +11,7 @@ defmodule Conway.Cli do
     alive_char: :string
   ]
   @aliases [
+    H: :help,
     f: :file,
     p: :pattern,
     r: :random,
@@ -22,19 +22,67 @@ defmodule Conway.Cli do
     A: :alive_char
   ]
   @defaults [
-    random: false,
+    help: false,
+    random: true,
     width: 9,
     height: 6,
     probability: 0.35,
     dead_char: ".",
     alive_char: "*"
   ]
-
   @mutually_exclusive_groups [[:file], [:pattern], [:random, :width, :height, :probability]]
+  @pattern_choices ["glider"]
+  @input_dead_char "."
+
+  @progname "conway"
+  @usage """
+  NAME
+    #{@progname} - a console implementation of Conway's Game of Life
+
+  USAGE
+    #{@progname} [--random] [--width N] [--height N] [--probability K] [OPTION]...
+    #{@progname} --pattern NAME [OPTION]...
+    #{@progname} --file PATH [OPTION]...
+
+  OPTIONS
+    The starting grid is determined by --random, --pattern, or --file.
+    Only one of these options can be present. If none are specified
+    --random is assumed.
+
+    -H, --help
+      Show help text.
+
+    -r, --random
+      Generate the starting grid randomly.
+
+      -w, --width=COLS
+        Number of columns in the generated grid (default: #{@defaults[:width]}).
+
+      -h, --height=ROWS
+        Number of rows of the generated grid (default: #{@defaults[:height]}).
+
+      -k, --probability=K
+        Probability between [0, 1] that a cell will start alive in the
+        generated grid (default: #{@defaults[:probability]}).
+
+    -p, --pattern={#{Enum.join(@pattern_choices, ",")}}
+      Use a named pattern for the starting grid.
+
+    -f, --file=PATH
+      Load the starting grid from a text file, where each line is a row and
+      each character is a cell in that row. Periods (`.`) are interpreted as
+      dead cells; anything else is interpreted as a living cell.
+
+    -D, --dead-char=CHAR
+      Output character for dead cells (default: "#{@defaults[:dead_char]}").
+
+    -A, --alive-char=CHAR
+      Output character for living cell (default: "#{@defaults[:alive_char]}").
+  """
 
   def main(argv \\ []) do
     case parse_args(argv) do
-      {:ok, opts} -> run(opts)
+      {:ok, opts} -> if opts[:help], do: IO.puts(:stderr, @usage), else: run(opts)
       {:error, reason} -> print_error(reason)
     end
   end
@@ -45,10 +93,10 @@ defmodule Conway.Cli do
     result =
       cond do
         !is_nil(opts[:file]) ->
-          Conway.Grid.from_string(opts[:file], opts)
+          Conway.Grid.from_string(opts[:file], dead_char: @input_dead_char)
 
         !is_nil(opts[:pattern]) ->
-          Conway.Grid.from_string(opts[:pattern], opts)
+          Conway.Grid.from_string(opts[:pattern], dead_char: @input_dead_char)
 
         opts[:random] ->
           {:ok, Conway.Grid.random(opts[:width], opts[:height], opts[:probability])}
@@ -64,7 +112,7 @@ defmodule Conway.Cli do
   end
 
   def print_error(reason) do
-    IO.puts(:stderr, "#{@progname}: error: #{reason}")
+    IO.puts(:stderr, "#{@progname}: error: #{reason}\n\n#{@usage}")
   end
 
   def parse_args(argv) do
@@ -100,12 +148,12 @@ defmodule Conway.Cli do
       _ ->
         {:error,
          Enum.map_join(invalid, "; ", fn
-           {name, nil} ->
-             "unexpected option --#{name}"
+           {opt, nil} ->
+             "unexpected option #{opt}"
 
-           {name, value} ->
-             type = @switches[String.to_atom(name)]
-             "--#{name} expects a #{type}, got `#{value}`"
+           {opt, value} ->
+             type = @switches[String.to_atom(opt)]
+             "#{opt} expects a #{type}, got `#{value}`"
          end)}
     end
   end
