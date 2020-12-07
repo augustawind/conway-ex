@@ -79,16 +79,6 @@ defmodule Conway.GridTest do
           .....
           """)
 
-    test "Grid#get_neighbors" do
-      assert Grid.get_neighbors(@grid, {0, 0}) == {:ok, List.duplicate(false, 8)}
-
-      assert Grid.get_neighbors(@grid, {1, 1}) ==
-               {:ok, [false, false, false, true, true, true, false, false]}
-
-      assert Grid.get_neighbors(@grid, {2, 2}) ==
-               {:ok, [false, true, true, true, false, false, false, true]}
-    end
-
     test "Grid#count_live_neighbors" do
       assert Grid.count_live_neighbors(@grid, {0, 0}) == {:ok, 0}
 

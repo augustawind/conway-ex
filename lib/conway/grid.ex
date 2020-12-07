@@ -1,6 +1,11 @@
 defmodule Conway.Grid do
   @strconv_opts %{dead_char: ".", alive_char: "*"}
 
+  @type point :: {non_neg_integer(), non_neg_integer()}
+  @type grid :: [[boolean()]]
+  @type t :: grid()
+
+  @spec from_string(binary(), keyword()) :: {:ok, grid()} | {:error, binary()}
   def from_string(s, options \\ []) do
     dead_char = Keyword.get(options, :dead_char, @strconv_opts.dead_char)
 
@@ -25,6 +30,7 @@ defmodule Conway.Grid do
     end
   end
 
+  @spec from_string!(binary(), keyword()) :: grid()
   def from_string!(s, options \\ []) do
     case from_string(s, options) do
       {:ok, grid} -> grid
@@ -32,6 +38,7 @@ defmodule Conway.Grid do
     end
   end
 
+  @spec random(pos_integer(), pos_integer(), float()) :: grid()
   def random(width, height, k) do
     1..height
     |> Enum.map(fn _ ->
@@ -39,6 +46,7 @@ defmodule Conway.Grid do
     end)
   end
 
+  @spec to_string(grid(), keyword()) :: binary()
   def to_string(grid, options \\ []) do
     %{dead_char: dead, alive_char: live} = Enum.into(options, @strconv_opts)
 
@@ -47,6 +55,7 @@ defmodule Conway.Grid do
     end)
   end
 
+  @spec step(grid()) :: grid() | nil
   def step(grid) do
     new_grid =
       grid
@@ -68,6 +77,7 @@ defmodule Conway.Grid do
     if new_grid == grid, do: nil, else: new_grid
   end
 
+  @spec next_state?(grid(), point(), boolean()) :: {:ok, boolean()} | :error
   def next_state?(grid, {x, y}, alive?) do
     case count_live_neighbors(grid, {x, y}) do
       {:ok, n} ->
@@ -83,22 +93,18 @@ defmodule Conway.Grid do
     end
   end
 
-  def count_live_neighbors(grid, point) do
-    case get_neighbors(grid, point) do
-      {:ok, neighbors} -> {:ok, Enum.count(neighbors, & &1)}
-      :error -> :error
-    end
-  end
-
   @deltas [{-1, -1}, {0, -1}, {1, -1}, {1, 0}, {1, 1}, {0, 1}, {-1, 1}, {-1, 0}]
-  def get_neighbors(grid, {x, y}) do
+  @spec count_live_neighbors(grid(), point()) :: {:ok, non_neg_integer()} | :error
+  def count_live_neighbors(grid, {x, y}) do
     if in_bounds(grid, {x, y}) do
-      {:ok, Enum.map(@deltas, fn {dx, dy} -> get_cell(grid, {x + dx, y + dy}) end)}
+      neighbors = Enum.map(@deltas, fn {dx, dy} -> get_cell(grid, {x + dx, y + dy}) end)
+      {:ok, Enum.count(neighbors, & &1)}
     else
       :error
     end
   end
 
+  @spec in_bounds(grid(), point()) :: boolean()
   def in_bounds(grid, {x, y}) do
     case Enum.fetch(grid, y) do
       {:ok, row} -> y >= 0 and x >= 0 and x < length(row)
@@ -106,6 +112,7 @@ defmodule Conway.Grid do
     end
   end
 
+  @spec get_cell(grid(), point()) :: boolean()
   def get_cell(grid, {x, y}) do
     with true <- x >= 0 and y >= 0,
          {:ok, row} <- Enum.fetch(grid, y),
