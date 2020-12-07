@@ -32,6 +32,13 @@ defmodule Conway.Grid do
     end
   end
 
+  def random(width, height) do
+    1..height
+    |> Enum.map(fn _ ->
+      1..width |> Enum.map(fn _ -> Enum.random([true, false]) end)
+    end)
+  end
+
   def to_string(grid, options \\ []) do
     %{dead_char: dead, alive_char: live} = Enum.into(options, @strconv_opts)
 

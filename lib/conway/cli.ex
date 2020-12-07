@@ -35,20 +35,10 @@ defmodule Conway.Cli do
     result =
       case opts[:file] do
         nil ->
-          {:ok,
-           1..opts[:height]
-           |> Enum.map(fn _ ->
-             1..opts[:width] |> Enum.map(fn _ -> Enum.random([true, false]) end)
-           end)}
+          {:ok, Conway.Grid.random(opts[:width], opts[:height])}
 
         file ->
-          case File.read(file) do
-            {:ok, s} ->
-              Conway.Grid.from_string(s, opts)
-
-            error ->
-              error
-          end
+          Conway.Grid.from_string(file, opts)
       end
 
     case result do
@@ -170,8 +160,4 @@ defmodule Conway.Cli do
         end
     end
   end
-
-  # def run(opts) do
-  #   if opts[:upcase], do: String.upcase(word), else: word
-  # end
 end
