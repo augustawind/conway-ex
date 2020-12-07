@@ -4,9 +4,6 @@ defmodule Conway do
   """
 
   def run(grid, options \\ []) do
-    IO.inspect(grid)
-    IO.inspect(options)
-
     print_grid(grid)
     main_loop(grid, options)
   end
