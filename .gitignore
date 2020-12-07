@@ -1,6 +1,9 @@
 # The directory Mix will write compiled artifacts to.
 /_build/
 
+# The compiled executable
+/conway
+
 # If you run "mix test --cover", coverage assets end up here.
 /cover/
 
@@ -22,8 +25,10 @@ erl_crash.dump
 # Ignore package tarball (built via "mix hex.build").
 conway-*.tar
 
-
 # Temporary files for e.g. tests
 /tmp
 
+# Editors
+/.vscode/
 /.history/
+
