@@ -1,9 +1,11 @@
 defmodule Conway.Grid do
-  @strconv_opts %{dead_char: ".", alive_char: "*"}
-
   @type point :: {non_neg_integer(), non_neg_integer()}
   @type grid :: [[boolean()]]
   @type t :: grid()
+
+  ### Constructors
+
+  @strconv_opts %{dead_char: ".", alive_char: "*"}
 
   @spec from_string(binary(), keyword()) :: {:ok, grid()} | {:error, binary()}
   def from_string(s, options \\ []) do
@@ -46,6 +48,8 @@ defmodule Conway.Grid do
     end)
   end
 
+  ### String output
+
   @spec to_string(grid(), keyword()) :: binary()
   def to_string(grid, options \\ []) do
     %{dead_char: dead, alive_char: live} = Enum.into(options, @strconv_opts)
@@ -54,6 +58,8 @@ defmodule Conway.Grid do
       Enum.map_join(row, &((&1 && live) || dead))
     end)
   end
+
+  ### Game logic
 
   @spec step(grid()) :: grid() | nil
   def step(grid) do
