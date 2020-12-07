@@ -5,7 +5,7 @@ defmodule Conway.GridTest do
 
   doctest Conway.Grid
 
-  describe "from/to string conversion" do
+  describe "string conversion" do
     test "Grid#from_string" do
       s = "*..\n.**\n"
 
@@ -24,21 +24,23 @@ defmodule Conway.GridTest do
     end
 
     test "Grid#to_string" do
-      grid = Grid.from_string!("**.\n*.*\n..*\n")
+      grid = [[true, true, false], [true, false, true], [false, false, true]]
 
-      assert Grid.to_string(grid) == """
-             **.
-             *.*
-             ..*
-             """
+      assert Grid.to_string(grid) ==
+               String.trim("""
+               **.
+               *.*
+               ..*
+               """)
 
-      assert Grid.to_string(grid, dead_char: "0", alive_char: "1") == """
-             110
-             101
-             001
-             """
+      assert Grid.to_string(grid, dead_char: "0", alive_char: "1") ==
+               String.trim("""
+               110
+               101
+               001
+               """)
 
-      assert Grid.to_string([[false]]) == ".\n"
+      assert Grid.to_string([[false]]) == "."
     end
   end
 
