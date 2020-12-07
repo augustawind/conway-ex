@@ -6,7 +6,7 @@ defmodule Conway.Grid do
 
     rows = String.split(s, "\n", trim: true)
 
-    if length(rows) == 0 do
+    if Enum.empty?(rows) do
       {:error, "grid must have at least one row"}
     else
       width = rows |> Enum.map(&String.length/1) |> Enum.max()
