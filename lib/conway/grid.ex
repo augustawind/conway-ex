@@ -112,16 +112,4 @@ defmodule Conway.Grid do
       _ -> false
     end
   end
-
-  def cell_set(grid) do
-    grid
-    |> Enum.with_index()
-    |> Enum.flat_map(fn {row, y} ->
-      row
-      |> Enum.with_index()
-      |> Enum.filter(fn {alive?, _} -> alive? end)
-      |> Enum.map(fn {_, x} -> {x, y} end)
-    end)
-    |> MapSet.new()
-  end
 end
