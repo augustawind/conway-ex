@@ -32,10 +32,10 @@ defmodule Conway.Grid do
     end
   end
 
-  def random(width, height) do
+  def random(width, height, k) do
     1..height
     |> Enum.map(fn _ ->
-      1..width |> Enum.map(fn _ -> Enum.random([true, false]) end)
+      1..width |> Enum.map(fn _ -> :rand.uniform() < k end)
     end)
   end
 

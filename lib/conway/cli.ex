@@ -6,17 +6,29 @@ defmodule Conway.Cli do
     random: :boolean,
     width: :integer,
     height: :integer,
+    probability: :float,
     dead_char: :string,
     alive_char: :string
   ]
-  @aliases [f: :file, r: :random, w: :width, h: :height, D: :dead_char, A: :alive_char]
+  @aliases [
+    f: :file,
+    r: :random,
+    w: :width,
+    h: :height,
+    k: :probability,
+    D: :dead_char,
+    A: :alive_char
+  ]
   @defaults [
     random: false,
+    width: 9,
+    height: 6,
+    probability: 0.35,
     dead_char: ".",
     alive_char: "*"
   ]
 
-  @mutually_exclusive_groups [[:file], [:random, :width, :height]]
+  @mutually_exclusive_groups [[:file], [:random, :width, :height, :probability]]
 
   def main(argv \\ []) do
     case parse_args(argv) do
@@ -34,7 +46,7 @@ defmodule Conway.Cli do
 
     result =
       if opts[:file] == nil do
-        {:ok, Conway.Grid.random(opts[:width], opts[:height])}
+        {:ok, Conway.Grid.random(opts[:width], opts[:height], opts[:probability])}
       else
         Conway.Grid.from_string(opts[:file], opts)
       end
@@ -54,6 +66,7 @@ defmodule Conway.Cli do
          :ok <- validate_no_invalid_args(invalid),
          :ok <- validate_mutually_exclusive_groups(opts, @mutually_exclusive_groups),
          :ok <- validate_dimensions(opts),
+         :ok <- validate_probability(opts),
          :ok <- validate_char_args(opts),
          {:ok, opts} <- process_file(opts) do
       {:ok, opts}
@@ -127,6 +140,20 @@ defmodule Conway.Cli do
     case result do
       nil -> :ok
       option -> {:error, "--#{option} must be > 0"}
+    end
+  end
+
+  def validate_probability(opts) do
+    case opts[:probability] do
+      nil ->
+        :ok
+
+      k ->
+        if k < 0 or k > 1 do
+          {:error, "--probability must be in the range [0, 1]"}
+        else
+          :ok
+        end
     end
   end
 
