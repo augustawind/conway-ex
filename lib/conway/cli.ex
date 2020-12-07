@@ -37,6 +37,8 @@ defmodule Conway.Cli do
   @mutually_exclusive_groups [[:file], [:preset], [:random, :width, :height, :probability]]
 
   @preset_choices ["beacon", "glider"]
+  @presets_dir Path.join("include", "patterns")
+
   @input_dead_char "."
 
   @progname "conway"
@@ -248,7 +250,8 @@ defmodule Conway.Cli do
     preset = opts[:preset]
     file = opts[:file]
 
-    case (preset && {:preset, Path.join("config/patterns", preset)}) || (file && {:file, file}) do
+    case (preset && {:preset, Path.join(@presets_dir, preset)}) ||
+           (file && {:file, file}) do
       {option, path} ->
         case File.read(path) do
           {:ok, s} -> {:ok, Keyword.replace(opts, option, s)}
