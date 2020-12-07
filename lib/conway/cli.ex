@@ -33,12 +33,10 @@ defmodule Conway.Cli do
     opts = Keyword.merge(@defaults, opts)
 
     result =
-      case opts[:file] do
-        nil ->
-          {:ok, Conway.Grid.random(opts[:width], opts[:height])}
-
-        file ->
-          Conway.Grid.from_string(file, opts)
+      if opts[:file] == nil do
+        {:ok, Conway.Grid.random(opts[:width], opts[:height])}
+      else
+        Conway.Grid.from_string(opts[:file], opts)
       end
 
     case result do
