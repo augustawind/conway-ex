@@ -171,6 +171,15 @@ defmodule Conway.GridTest do
       assert Grid.step(glider1) == glider2
       assert Grid.step(glider2) == glider3
       assert Grid.step(glider3) == glider4
+
+      assert Grid.step(
+               Grid.from_string!("""
+               ....
+               .**.
+               .**.
+               ....
+               """)
+             ) == nil
     end
   end
 end

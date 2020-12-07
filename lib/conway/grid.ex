@@ -48,21 +48,24 @@ defmodule Conway.Grid do
   end
 
   def step(grid) do
-    grid
-    |> Enum.with_index()
-    |> Enum.reverse()
-    |> Enum.reduce([], fn {row, y}, next_grid ->
-      row =
-        row
-        |> Enum.with_index()
-        |> Enum.reverse()
-        |> Enum.reduce([], fn {cell, x}, next_row ->
-          {:ok, cell} = next_state?(grid, {x, y}, cell)
-          [cell | next_row]
-        end)
+    new_grid =
+      grid
+      |> Enum.with_index()
+      |> Enum.reverse()
+      |> Enum.reduce([], fn {row, y}, next_grid ->
+        row =
+          row
+          |> Enum.with_index()
+          |> Enum.reverse()
+          |> Enum.reduce([], fn {cell, x}, next_row ->
+            {:ok, cell} = next_state?(grid, {x, y}, cell)
+            [cell | next_row]
+          end)
 
-      [row | next_grid]
-    end)
+        [row | next_grid]
+      end)
+
+    if new_grid == grid, do: nil, else: new_grid
   end
 
   def next_state?(grid, {x, y}, alive?) do
