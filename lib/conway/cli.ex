@@ -3,6 +3,7 @@ defmodule Conway.Cli do
 
   @switches [
     file: :string,
+    pattern: :string,
     random: :boolean,
     width: :integer,
     height: :integer,
@@ -12,6 +13,7 @@ defmodule Conway.Cli do
   ]
   @aliases [
     f: :file,
+    p: :pattern,
     r: :random,
     w: :width,
     h: :height,
@@ -28,7 +30,7 @@ defmodule Conway.Cli do
     alive_char: "*"
   ]
 
-  @mutually_exclusive_groups [[:file], [:random, :width, :height, :probability]]
+  @mutually_exclusive_groups [[:file], [:pattern], [:random, :width, :height, :probability]]
 
   def main(argv \\ []) do
     case parse_args(argv) do
@@ -37,18 +39,22 @@ defmodule Conway.Cli do
     end
   end
 
-  def parse_args(argv) do
-    argv |> OptionParser.parse(strict: @switches, aliases: @aliases) |> validate()
-  end
-
   def run(opts) do
     opts = Keyword.merge(@defaults, opts)
 
     result =
-      if opts[:file] == nil do
-        {:ok, Conway.Grid.random(opts[:width], opts[:height], opts[:probability])}
-      else
-        Conway.Grid.from_string(opts[:file], opts)
+      cond do
+        !is_nil(opts[:file]) ->
+          Conway.Grid.from_string(opts[:file], opts)
+
+        !is_nil(opts[:pattern]) ->
+          Conway.Grid.from_string(opts[:pattern], opts)
+
+        opts[:random] ->
+          {:ok, Conway.Grid.random(opts[:width], opts[:height], opts[:probability])}
+
+        true ->
+          raise "missing a strategy option (--file, --random, etc.)"
       end
 
     case result do
@@ -59,6 +65,10 @@ defmodule Conway.Cli do
 
   def print_error(reason) do
     IO.puts(:stderr, "#{@progname}: error: #{reason}")
+  end
+
+  def parse_args(argv) do
+    argv |> OptionParser.parse(strict: @switches, aliases: @aliases) |> validate()
   end
 
   def validate({opts, rest, invalid}) do
@@ -174,13 +184,25 @@ defmodule Conway.Cli do
   end
 
   def process_file(opts) do
-    case opts[:file] do
+    {option, file} =
+      case opts[:pattern] do
+        nil ->
+          case opts[:file] do
+            nil -> {nil, nil}
+            file -> {:file, file}
+          end
+
+        pattern ->
+          {:pattern, Path.join("config/patterns", pattern)}
+      end
+
+    case file do
       nil ->
         {:ok, opts}
 
       file ->
         case File.read(file) do
-          {:ok, s} -> {:ok, Keyword.replace(opts, :file, s)}
+          {:ok, s} -> {:ok, Keyword.replace(opts, option, s)}
           error -> error
         end
     end
