@@ -2,7 +2,7 @@ defmodule Conway.Cli do
   @switches [
     help: :boolean,
     file: :string,
-    pattern: :string,
+    preset: :string,
     random: :boolean,
     width: :integer,
     height: :integer,
@@ -14,7 +14,7 @@ defmodule Conway.Cli do
   ]
   @aliases [
     f: :file,
-    p: :pattern,
+    p: :preset,
     r: :random,
     w: :width,
     h: :height,
@@ -25,7 +25,6 @@ defmodule Conway.Cli do
     A: :alive_char
   ]
   @defaults [
-    help: false,
     random: true,
     width: 9,
     height: 6,
@@ -35,9 +34,9 @@ defmodule Conway.Cli do
     dead_char: ".",
     alive_char: "*"
   ]
-  @mutually_exclusive_groups [[:file], [:pattern], [:random, :width, :height, :probability]]
+  @mutually_exclusive_groups [[:file], [:preset], [:random, :width, :height, :probability]]
 
-  @pattern_choices ["beacon", "glider"]
+  @preset_choices ["beacon", "glider"]
   @input_dead_char "."
 
   @progname "conway"
@@ -47,11 +46,11 @@ defmodule Conway.Cli do
 
   USAGE
     #{@progname} [--random] [--width N] [--height N] [--probability K] [OPTION]...
-    #{@progname} --pattern NAME [OPTION]...
+    #{@progname} --preset NAME [OPTION]...
     #{@progname} --file PATH [OPTION]...
 
   OPTIONS
-    The starting grid is determined by --random, --pattern, or --file.
+    The starting grid is determined by --random, --preset, or --file.
     Only one of these options can be present. If none are specified
     --random is assumed.
 
@@ -71,8 +70,8 @@ defmodule Conway.Cli do
         Probability between [0, 1] that a cell will start alive in the
         generated grid (default: #{@defaults[:probability]}).
 
-    -p/--pattern {#{Enum.join(@pattern_choices, ",")}}
-      Use a named pattern for the starting grid.
+    -p/--preset {#{Enum.join(@preset_choices, ",")}}
+      Use a preset pattern for the starting grid.
 
     -f/--file PATH
       Load the starting grid from a text file, where each line is a row and
@@ -103,7 +102,7 @@ defmodule Conway.Cli do
 
   def run(opts) do
     opts = Keyword.merge(@defaults, opts)
-    pattern = opts[:file] || opts[:pattern]
+    pattern = opts[:file] || opts[:preset]
     grid_opts = opts |> Keyword.take([:min_width, :min_height])
 
     grid_result =
@@ -246,27 +245,18 @@ defmodule Conway.Cli do
   end
 
   def process_file(opts) do
-    {option, file} =
-      case opts[:pattern] do
-        nil ->
-          case opts[:file] do
-            nil -> {nil, nil}
-            file -> {:file, file}
-          end
+    preset = opts[:preset]
+    file = opts[:file]
 
-        pattern ->
-          {:pattern, Path.join("config/patterns", pattern)}
-      end
-
-    case file do
-      nil ->
-        {:ok, opts}
-
-      file ->
-        case File.read(file) do
+    case (preset && {:preset, Path.join("config/patterns", preset)}) || (file && {:file, file}) do
+      {option, path} ->
+        case File.read(path) do
           {:ok, s} -> {:ok, Keyword.replace(opts, option, s)}
           error -> error
         end
+
+      nil ->
+        {:ok, opts}
     end
   end
 end
