@@ -2,43 +2,27 @@ defmodule Conway do
   @moduledoc """
   An implementation of Conway's Game of Life.
   """
-  use Application
-  alias Conway.Grid
 
-  @pattern_blinker """
-  .....
-  ..*..
-  ..*..
-  ..*..
-  .....
-  """
+  def run(grid, options \\ []) do
+    IO.inspect(grid)
+    IO.inspect(options)
 
-  @pattern_toad """
-  ......
-  ......
-  ..***.
-  .***..
-  ......
-  ......
-  """
-
-  def start(_type, _args) do
-    # IO.puts("~ TOAD ~\n----------\n")
-    # {:ok, grid} = Grid.from_string(@pattern_toad)
-    # IO.puts(Grid.to_string(grid))
-    # grid = Grid.step(grid)
-    # IO.puts("\n" <> Grid.to_string(grid))
-
-    # {:ok, grid} = Grid.from_string(@pattern_blinker)
-    # IO.puts("\n~ BLINKER ~\n----------\n")
-    # IO.puts(Grid.to_string(grid))
-    # grid = Grid.step(grid)
-    # IO.puts("\n" <> Grid.to_string(grid))
-    Task.start(fn -> nil end)
+    print_grid(grid)
+    main_loop(grid, options)
   end
 
-  def run(grid, opts) do
-    IO.inspect(grid)
-    IO.inspect(opts)
+  def main_loop(grid, options \\ []) do
+    receive do
+    after
+      500 ->
+        grid = Conway.Grid.step(grid)
+        IO.puts("")
+        print_grid(grid, options)
+        main_loop(grid, options)
+    end
+  end
+
+  def print_grid(grid, options \\ []) do
+    IO.puts(Conway.Grid.to_string(grid, options))
   end
 end

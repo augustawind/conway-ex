@@ -42,12 +42,9 @@ defmodule Conway.Grid do
   def to_string(grid, options \\ []) do
     %{dead_char: dead, alive_char: live} = Enum.into(options, @strconv_opts)
 
-    s =
-      Enum.map_join(grid, "\n", fn row ->
-        Enum.map_join(row, &((&1 && live) || dead))
-      end)
-
-    s <> "\n"
+    Enum.map_join(grid, "\n", fn row ->
+      Enum.map_join(row, &((&1 && live) || dead))
+    end)
   end
 
   def step(grid) do
