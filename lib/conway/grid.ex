@@ -10,23 +10,33 @@ defmodule Conway.Grid do
   @spec from_string(binary(), keyword()) :: {:ok, grid()} | {:error, binary()}
   def from_string(s, options \\ []) do
     dead_char = Keyword.get(options, :dead_char, @strconv_opts.dead_char)
+    min_width = Keyword.get(options, :min_width, 0)
+    min_height = Keyword.get(options, :min_height, 0)
 
     rows = String.split(s, "\n", trim: true)
 
     if Enum.empty?(rows) do
       {:error, "grid must have at least one row"}
     else
-      width = rows |> Enum.map(&String.length/1) |> Enum.max()
+      width = max(min_width, rows |> Enum.map(&String.length/1) |> Enum.max())
 
       grid =
         Enum.map(rows, fn line ->
           row = line |> String.graphemes() |> Enum.map(&(&1 != dead_char))
 
+          # Pad to min_width
           case width - length(row) do
             0 -> row
-            n -> Enum.concat(row, List.duplicate(false, n))
+            n -> row ++ List.duplicate(false, n)
           end
         end)
+
+      # Pad to min_height
+      grid =
+        case min_height - length(grid) do
+          n when n > 0 -> grid ++ List.duplicate(List.duplicate(false, width), n)
+          _ -> grid
+        end
 
       {:ok, grid}
     end
@@ -40,12 +50,29 @@ defmodule Conway.Grid do
     end
   end
 
-  @spec random(pos_integer(), pos_integer(), float()) :: grid()
-  def random(width, height, k) do
-    1..height
-    |> Enum.map(fn _ ->
-      1..width |> Enum.map(fn _ -> :rand.uniform() < k end)
-    end)
+  @spec random(pos_integer(), pos_integer(), float(), keyword()) :: grid()
+  def random(width, height, k, options \\ []) do
+    min_width = Keyword.get(options, :min_width, 0)
+    min_height = Keyword.get(options, :min_height, 0)
+
+    grid =
+      1..height
+      |> Enum.map(fn _ ->
+        1..width |> Enum.map(fn _ -> :rand.uniform() < k end)
+      end)
+
+    # Pad to min_width
+    grid =
+      case min_width - width do
+        n when n > 0 -> Enum.map(grid, fn row -> row ++ List.duplicate(false, n) end)
+        _ -> grid
+      end
+
+    # Pad to min_height
+    case min_height - height do
+      n when n > 0 -> grid ++ List.duplicate(List.duplicate(false, max(width, min_width)), n)
+      _ -> grid
+    end
   end
 
   ### String output

@@ -7,17 +7,20 @@ defmodule Conway.Cli do
     width: :integer,
     height: :integer,
     probability: :float,
+    min_width: :integer,
+    min_height: :integer,
     dead_char: :string,
     alive_char: :string
   ]
   @aliases [
-    H: :help,
     f: :file,
     p: :pattern,
     r: :random,
     w: :width,
     h: :height,
     k: :probability,
+    W: :min_width,
+    H: :min_height,
     D: :dead_char,
     A: :alive_char
   ]
@@ -27,11 +30,14 @@ defmodule Conway.Cli do
     width: 9,
     height: 6,
     probability: 0.35,
+    min_width: 0,
+    min_height: 0,
     dead_char: ".",
     alive_char: "*"
   ]
   @mutually_exclusive_groups [[:file], [:pattern], [:random, :width, :height, :probability]]
-  @pattern_choices ["glider"]
+
+  @pattern_choices ["beacon", "glider"]
   @input_dead_char "."
 
   @progname "conway"
@@ -55,28 +61,36 @@ defmodule Conway.Cli do
     -r, --random
       Generate the starting grid randomly.
 
-      -w, --width=COLS
+      -w/--width COLS
         Number of columns in the generated grid (default: #{@defaults[:width]}).
 
-      -h, --height=ROWS
+      -h/--height ROWS
         Number of rows of the generated grid (default: #{@defaults[:height]}).
 
-      -k, --probability=K
+      -k/--probability K
         Probability between [0, 1] that a cell will start alive in the
         generated grid (default: #{@defaults[:probability]}).
 
-    -p, --pattern={#{Enum.join(@pattern_choices, ",")}}
+    -p/--pattern {#{Enum.join(@pattern_choices, ",")}}
       Use a named pattern for the starting grid.
 
-    -f, --file=PATH
+    -f/--file PATH
       Load the starting grid from a text file, where each line is a row and
       each character is a cell in that row. Periods (`.`) are interpreted as
       dead cells; anything else is interpreted as a living cell.
 
-    -D, --dead-char=CHAR
+    -W/--min-width COLS
+      Minimum grid width. If the grid's width is less than COLS it will be
+      padded with empty columns up to the required width.
+
+    -H/--min-height ROWS
+      Minimum grid height. If the grid's height is less than ROWS it will
+      be padded with empty rows up to the required height.
+
+    -D/--dead-char CHAR
       Output character for dead cells (default: "#{@defaults[:dead_char]}").
 
-    -A, --alive-char=CHAR
+    -A/--alive-char CHAR
       Output character for living cell (default: "#{@defaults[:alive_char]}").
   """
 
@@ -89,23 +103,22 @@ defmodule Conway.Cli do
 
   def run(opts) do
     opts = Keyword.merge(@defaults, opts)
+    pattern = opts[:file] || opts[:pattern]
+    grid_opts = opts |> Keyword.take([:min_width, :min_height])
 
-    result =
+    grid_result =
       cond do
-        !is_nil(opts[:file]) ->
-          Conway.Grid.from_string(opts[:file], dead_char: @input_dead_char)
-
-        !is_nil(opts[:pattern]) ->
-          Conway.Grid.from_string(opts[:pattern], dead_char: @input_dead_char)
+        !is_nil(pattern) ->
+          Conway.Grid.from_string(pattern, [{:dead_char, @input_dead_char} | grid_opts])
 
         opts[:random] ->
-          {:ok, Conway.Grid.random(opts[:width], opts[:height], opts[:probability])}
+          {:ok, Conway.Grid.random(opts[:width], opts[:height], opts[:probability], grid_opts)}
 
         true ->
           raise "missing a strategy option (--file, --random, etc.)"
       end
 
-    case result do
+    case grid_result do
       {:ok, grid} -> Conway.run(grid, opts)
       {:error, reason} -> print_error(reason)
     end
@@ -123,7 +136,8 @@ defmodule Conway.Cli do
     with :ok <- validate_no_remaining_args(rest),
          :ok <- validate_no_invalid_args(invalid),
          :ok <- validate_mutually_exclusive_groups(opts, @mutually_exclusive_groups),
-         :ok <- validate_dimensions(opts),
+         :ok <- validate_dimensions(opts, [:width, :height], 1),
+         :ok <- validate_dimensions(opts, [:min_width, :min_height], 0),
          :ok <- validate_probability(opts),
          :ok <- validate_char_args(opts),
          {:ok, opts} <- process_file(opts) do
@@ -185,13 +199,13 @@ defmodule Conway.Cli do
     end
   end
 
-  def validate_dimensions(opts) do
+  def validate_dimensions(opts, switches, min_value) do
     result =
-      [:width, :height]
+      switches
       |> Enum.find(
         &case opts[&1] do
           nil -> false
-          n -> n < 1
+          n -> n < min_value
         end
       )
 
