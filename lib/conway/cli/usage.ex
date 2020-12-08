@@ -1,4 +1,4 @@
-defmodule Conway.TextWrap do
+defmodule Conway.Cli.Usage.TextWrap do
   @moduledoc """
   Generic text wrap utility.
   """
@@ -71,11 +71,11 @@ defmodule Conway.TextWrap do
   defp join_word(line, word), do: line <> " " <> word
 end
 
-defmodule Conway.HelpFormatter do
+defmodule Conway.Cli.Usage do
   @moduledoc """
   Generate help text from a map of options.
   """
-  import Conway.TextWrap
+  import Conway.Cli.Usage.TextWrap
 
   def fmt_options(options, opts \\ []) do
     options |> Enum.map(fn {name, cfg} -> fmt_option(name, cfg, opts) end) |> Enum.join("\n\n")

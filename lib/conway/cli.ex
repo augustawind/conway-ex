@@ -106,10 +106,10 @@ defmodule Conway.Cli do
     #{@app.name} --preset NAME [OPTION]...
     #{@app.name} --file PATH [OPTION]...
 
-  #{Conway.TextWrap.wrap(@app.usage_text, max_width: 72, indent: 2)}
+  #{Conway.Cli.Usage.TextWrap.wrap(@app.usage_text, max_width: 72, indent: 2)}
 
   OPTIONS
-  #{Conway.HelpFormatter.fmt_options(@app.options, max_width: 72, indent: 2)}
+  #{Conway.Cli.Usage.fmt_options(@app.options, max_width: 72, indent: 2)}
   """
 
   def main(argv \\ []) do
