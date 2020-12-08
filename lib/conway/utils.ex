@@ -29,7 +29,14 @@ defmodule Conway.HelpFormatter do
 
         if chars_left >= 2 do
           {left, right} = String.split_at(word, chars_left)
-          assemble_lines([left <> "-" | [right | rest]], lines, line, width, indent)
+
+          assemble_lines(
+            [right | rest],
+            [indent <> join_word(line, left) <> "-" | lines],
+            "",
+            width,
+            indent
+          )
         else
           {left, right} = String.split_at(word, width - 1)
           assemble_lines([right | rest], [indent <> line | lines], left <> "-", width, indent)
@@ -38,7 +45,10 @@ defmodule Conway.HelpFormatter do
         assemble_lines(rest, [indent <> line | lines], word, width, indent)
       end
     else
-      assemble_lines(rest, lines, line <> " " <> word, width, indent)
+      assemble_lines(rest, lines, join_word(line, word), width, indent)
     end
   end
+
+  defp join_word("", word), do: word
+  defp join_word(line, word), do: line <> " " <> word
 end
