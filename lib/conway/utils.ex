@@ -29,16 +29,18 @@ defmodule Conway.HelpFormatter do
         # `word` is too long to fit on a single line, so we have to break it.
         chars_left = width - line_len - 2
 
-        if chars_left >= 2 do
-          # There's enough room to start the break on this line.
-          {left, right} = String.split_at(word, chars_left)
-          line = indent <> join_word(line, left) <> "-"
-          assemble_lines([right | rest], [line | lines], "", width, indent)
-        else
-          # There isn't enough room to start the break, so start a new line with the broken word.
-          {left, right} = String.split_at(word, width - 1)
-          assemble_lines([right | rest], [indent <> line | lines], left <> "-", width, indent)
-        end
+        {words, lines, next_line} =
+          if chars_left >= 2 do
+            # There's enough room to start the break on this line.
+            {left, right} = String.split_at(word, chars_left)
+            {[right | rest], [indent <> join_word(line, left) <> "-" | lines], ""}
+          else
+            # There isn't enough room to start the break, so start a new line with the broken word.
+            {left, right} = String.split_at(word, width - 1)
+            {[right | rest], [indent <> line | lines], left <> "-"}
+          end
+
+        assemble_lines(words, lines, next_line, width, indent)
       else
         # `word` will fit on a new line, so start the next line with it.
         assemble_lines(rest, [indent <> line | lines], word, width, indent)
