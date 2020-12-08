@@ -1,106 +1,115 @@
-defmodule Conway.Cli.Options do
-  defstruct help: %{type: :boolean, help: "Show help text."},
-            file: %{
-              type: :string,
-              alias: :f,
-              metavar: "PATH",
-              help: "\
+defmodule Conway.Cli.AppInfo do
+  defstruct name: "conway",
+            summary: "a console implementation of Conway's Game of Life",
+            usage_text: "\
+            The starting grid is determined by --random, --preset, or --file. \
+            Only one of these options can be present. If none are specified \
+            --random is assumed.",
+            options: %{
+              help: %{type: :boolean, help: "Show help text."},
+              file: %{
+                type: :string,
+                alias: :f,
+                metavar: "PATH",
+                help: "\
               Load the starting grid from a text file, where each line is a row and \
               each character is a cell in that row. Periods (`.`) are interpreted as \
               dead cells; anything else is interpreted as a living cell."
-            },
-            preset: %{
-              type: :string,
-              alias: :p,
-              choices: ["beacon", "glider"],
-              help: "Use a preset pattern for the starting grid."
-            },
-            random: %{
-              type: :boolean,
-              alias: :r,
-              default: true,
-              help: "Generate the starting grid randomly."
-            },
-            width: %{
-              type: :integer,
-              alias: :w,
-              default: 9,
-              metavar: "COLS",
-              help: "Number of columns in the generated grid."
-            },
-            height: %{
-              type: :integer,
-              alias: :h,
-              default: 6,
-              metavar: "ROWS",
-              help: "Number of rows in the generated grid."
-            },
-            probability: %{
-              type: :float,
-              alias: :k,
-              default: 0.35,
-              metavar: "K",
-              help: "\
+              },
+              preset: %{
+                type: :string,
+                alias: :p,
+                choices: ["beacon", "glider"],
+                help: "Use a preset pattern for the starting grid."
+              },
+              random: %{
+                type: :boolean,
+                alias: :r,
+                default: true,
+                help: "Generate the starting grid randomly."
+              },
+              width: %{
+                type: :integer,
+                alias: :w,
+                default: 9,
+                metavar: "COLS",
+                help: "Number of columns in the generated grid."
+              },
+              height: %{
+                type: :integer,
+                alias: :h,
+                default: 6,
+                metavar: "ROWS",
+                help: "Number of rows in the generated grid."
+              },
+              probability: %{
+                type: :float,
+                alias: :k,
+                default: 0.35,
+                metavar: "K",
+                help: "\
               Probability between [0, 1] that a cell will start alive in the generated grid."
-            },
-            min_width: %{
-              type: :integer,
-              alias: :W,
-              default: 0,
-              metavar: "COLS",
-              help: "\
+              },
+              min_width: %{
+                type: :integer,
+                alias: :W,
+                default: 0,
+                metavar: "COLS",
+                help: "\
               Minimum grid width. If the grid's width is less than COLS it will be padded with \
               empty columns up to the required width."
-            },
-            min_height: %{
-              type: :integer,
-              alias: :H,
-              default: 0,
-              metavar: "ROWS",
-              help: "\
+              },
+              min_height: %{
+                type: :integer,
+                alias: :H,
+                default: 0,
+                metavar: "ROWS",
+                help: "\
               Minimum grid height. If the grid's height is less than ROWS it will be padded with \
               empty rows up to the required height."
+              },
+              # delay: [type: :integer, alias: :d, default: 500, help: ""],
+              dead_char: %{
+                type: :string,
+                alias: :D,
+                default: ".",
+                metavar: "CHAR",
+                help: "Output character for dead cells."
+              },
+              alive_char: %{
+                type: :string,
+                alias: :A,
+                default: "*",
+                metavar: "CHAR",
+                help: "Output character for living cells."
+              }
             },
-            # delay: [type: :integer, alias: :d, default: 500, help: ""],
-            dead_char: %{
-              type: :string,
-              alias: :D,
-              default: ".",
-              metavar: "CHAR",
-              help: "Output character for dead cells."
-            },
-            alive_char: %{
-              type: :string,
-              alias: :A,
-              default: "*",
-              metavar: "CHAR",
-              help: "Output character for living cells."
-            }
+            mutually_exclusive_groups: [
+              [:file],
+              [:preset],
+              [:random, :width, :height, :probability]
+            ]
 end
 
 defmodule Conway.Cli do
-  @options Map.from_struct(%Conway.Cli.Options{})
-  @mutually_exclusive_groups [[:file], [:preset], [:random, :width, :height, :probability]]
+  @app %Conway.Cli.AppInfo{}
 
-  @progname "conway"
   @input_dead_char "."
   @presets_dir Path.join("include", "patterns")
 
   @usage """
   NAME
-    #{@progname} - a console implementation of Conway's Game of Life
+    #{@app.name} - #{@app.summary}
 
   USAGE
-    #{@progname} [--random] [--width N] [--height N] [--probability K] [OPTION]...
-    #{@progname} --preset NAME [OPTION]...
-    #{@progname} --file PATH [OPTION]...
+    #{@app.name} [--random] [--width N] [--height N] [--probability K] [OPTION]...
+    #{@app.name} --preset NAME [OPTION]...
+    #{@app.name} --file PATH [OPTION]...
+
+  #{Conway.TextWrap.wrap(@app.usage_text, max_width: 72, indent: 2)}
 
   OPTIONS
-    The starting grid is determined by --random, --preset, or --file.
-    Only one of these options can be present. If none are specified
-    --random is assumed.
-
-  #{Conway.HelpFormatter.fmt_options(@options, max_width: 72, indent: 2)}
+  #{Conway.HelpFormatter.fmt_options(@app.options, max_width: 72, indent: 2)}
   """
 
   def main(argv \\ []) do
@@ -112,7 +121,7 @@ defmodule Conway.Cli do
 
   def run(opts) do
     defaults =
-      @options
+      @app.options
       |> Enum.filter(fn {_, cfg} -> Map.has_key?(cfg, :default) end)
       |> Enum.map(fn {switch, cfg} -> {switch, cfg[:default]} end)
 
@@ -139,14 +148,14 @@ defmodule Conway.Cli do
   end
 
   def print_error(reason) do
-    IO.puts(:stderr, "#{@progname}: error: #{reason}\n\n#{@usage}")
+    IO.puts(:stderr, "#{@app.name}: error: #{reason}\n\n#{@usage}")
   end
 
   def parse_args(argv) do
-    switches = @options |> Enum.map(fn {switch, cfg} -> {switch, cfg[:type]} end)
+    switches = @app.options |> Enum.map(fn {switch, cfg} -> {switch, cfg[:type]} end)
 
     aliases =
-      @options
+      @app.options
       |> Enum.filter(fn {_, cfg} -> Map.has_key?(cfg, :alias) end)
       |> Enum.map(fn {switch, cfg} -> {cfg[:alias], switch} end)
 
@@ -156,7 +165,7 @@ defmodule Conway.Cli do
   def validate({opts, rest, invalid}) do
     with :ok <- validate_no_remaining_args(rest),
          :ok <- validate_no_invalid_args(invalid),
-         :ok <- validate_mutually_exclusive_groups(opts, @mutually_exclusive_groups),
+         :ok <- validate_mutually_exclusive_groups(opts, @app.mutually_exclusive_groups),
          :ok <- validate_dimensions(opts, [:width, :height], 1),
          :ok <- validate_dimensions(opts, [:min_width, :min_height], 0),
          :ok <- validate_probability(opts),
@@ -187,7 +196,7 @@ defmodule Conway.Cli do
              "unexpected option #{opt}"
 
            {opt, value} ->
-             type = @options[String.to_atom(opt)][:type]
+             type = @app.options[String.to_atom(opt)][:type]
              "#{opt} expects a #{type}, got `#{value}`"
          end)}
     end
