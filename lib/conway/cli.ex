@@ -1,47 +1,32 @@
 defmodule Conway.Cli do
-  @switches [
-    help: :boolean,
-    file: :string,
-    preset: :string,
-    random: :boolean,
-    width: :integer,
-    height: :integer,
-    probability: :float,
-    min_width: :integer,
-    min_height: :integer,
-    dead_char: :string,
-    alive_char: :string
+  @progname "conway"
+
+  @options [
+    help: [type: :boolean],
+    file: [type: :string, alias: :f],
+    preset: [type: :string, alias: :p, choices: ["beacon", "glider"]],
+    random: [type: :boolean, alias: :r, default: true],
+    width: [type: :integer, alias: :w, default: 9],
+    height: [type: :integer, alias: :h, default: 6],
+    probability: [type: :float, alias: :k, default: 0.35],
+    min_width: [type: :integer, alias: :W, default: 0],
+    min_height: [type: :integer, alias: :H, default: 0],
+    dead_char: [type: :string, alias: :D, default: "."],
+    alive_char: [type: :string, alias: :A, default: "*"]
   ]
-  @aliases [
-    f: :file,
-    p: :preset,
-    r: :random,
-    w: :width,
-    h: :height,
-    k: :probability,
-    W: :min_width,
-    H: :min_height,
-    D: :dead_char,
-    A: :alive_char
-  ]
-  @defaults [
-    random: true,
-    width: 9,
-    height: 6,
-    probability: 0.35,
-    min_width: 0,
-    min_height: 0,
-    dead_char: ".",
-    alive_char: "*"
-  ]
+  @switches @options |> Enum.map(fn {switch, cfg} -> {switch, cfg[:type]} end)
+  @aliases @options
+           |> Enum.filter(fn {_, cfg} -> Keyword.has_key?(cfg, :alias) end)
+           |> Enum.map(fn {switch, cfg} -> {cfg[:alias], switch} end)
+  @defaults @options
+            |> Enum.filter(fn {_, cfg} -> Keyword.has_key?(cfg, :default) end)
+            |> Enum.map(fn {switch, cfg} -> {switch, cfg[:default]} end)
+
   @mutually_exclusive_groups [[:file], [:preset], [:random, :width, :height, :probability]]
 
-  @preset_choices ["beacon", "glider"]
   @presets_dir Path.join("include", "patterns")
-
   @input_dead_char "."
 
-  @progname "conway"
   @usage """
   NAME
     #{@progname} - a console implementation of Conway's Game of Life
@@ -72,7 +57,7 @@ defmodule Conway.Cli do
         Probability between [0, 1] that a cell will start alive in the
         generated grid (default: #{@defaults[:probability]}).
 
-    -p/--preset {#{Enum.join(@preset_choices, ",")}}
+    -p/--preset {#{Enum.join(@options[:preset][:choices], ",")}}
       Use a preset pattern for the starting grid.
 
     -f/--file PATH
