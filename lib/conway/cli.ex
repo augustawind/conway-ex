@@ -1,17 +1,85 @@
+defmodule Conway.Cli.Options do
+  defstruct help: %{type: :boolean, help: "Show help text."},
+            file: %{
+              type: :string,
+              alias: :f,
+              metavar: "PATH",
+              help: "\
+              Load the starting grid from a text file, where each line is a row and \
+              each character is a cell in that row. Periods (`.`) are interpreted as \
+              dead cells; anything else is interpreted as a living cell."
+            },
+            preset: %{
+              type: :string,
+              alias: :p,
+              choices: ["beacon", "glider"],
+              help: "Use a preset pattern for the starting grid."
+            },
+            random: %{
+              type: :boolean,
+              alias: :r,
+              default: true,
+              help: "Generate the starting grid randomly."
+            },
+            width: %{
+              type: :integer,
+              alias: :w,
+              default: 9,
+              metavar: "COLS",
+              help: "Number of columns in the generated grid."
+            },
+            height: %{
+              type: :integer,
+              alias: :h,
+              default: 6,
+              metavar: "ROWS",
+              help: "Number of rows in the generated grid."
+            },
+            probability: %{
+              type: :float,
+              alias: :k,
+              default: 0.35,
+              metavar: "K",
+              help: "\
+              Probability between [0, 1] that a cell will start alive in the generated grid."
+            },
+            min_width: %{
+              type: :integer,
+              alias: :W,
+              default: 0,
+              metavar: "COLS",
+              help: "\
+              Minimum grid width. If the grid's width is less than COLS it will be padded with \
+              empty columns up to the required width."
+            },
+            min_height: %{
+              type: :integer,
+              alias: :H,
+              default: 0,
+              metavar: "ROWS",
+              help: "\
+              Minimum grid height. If the grid's height is less than ROWS it will be padded with \
+              empty rows up to the required height."
+            },
+            # delay: [type: :integer, alias: :d, default: 500, help: ""],
+            dead_char: %{
+              type: :string,
+              alias: :D,
+              default: ".",
+              metavar: "CHAR",
+              help: "Output character for dead cells."
+            },
+            alive_char: %{
+              type: :string,
+              alias: :A,
+              default: "*",
+              metavar: "CHAR",
+              help: "Output character for living cells."
+            }
+end
+
 defmodule Conway.Cli do
-  @options [
-    help: [type: :boolean],
-    file: [type: :string, alias: :f],
-    preset: [type: :string, alias: :p, choices: ["beacon", "glider"]],
-    random: [type: :boolean, alias: :r, default: true],
-    width: [type: :integer, alias: :w, default: 9],
-    height: [type: :integer, alias: :h, default: 6],
-    probability: [type: :float, alias: :k, default: 0.35],
-    min_width: [type: :integer, alias: :W, default: 0],
-    min_height: [type: :integer, alias: :H, default: 0],
-    dead_char: [type: :string, alias: :D, default: "."],
-    alive_char: [type: :string, alias: :A, default: "*"]
-  ]
+  @options Map.from_struct(%Conway.Cli.Options{})
   @mutually_exclusive_groups [[:file], [:preset], [:random, :width, :height, :probability]]
 
   @progname "conway"
@@ -32,43 +100,7 @@ defmodule Conway.Cli do
     Only one of these options can be present. If none are specified
     --random is assumed.
 
-    -H, --help
-      Show help text.
-
-    -r, --random
-      Generate the starting grid randomly.
-
-      -w/--width COLS
-        Number of columns in the generated grid (default: #{@options[:width][:default]}).
-
-      -h/--height ROWS
-        Number of rows of the generated grid (default: #{@options[:height][:default]}).
-
-      -k/--probability K
-        Probability between [0, 1] that a cell will start alive in the
-        generated grid (default: #{@options[:probability][:default]}).
-
-    -p/--preset {#{Enum.join(@options[:preset][:choices], ",")}}
-      Use a preset pattern for the starting grid.
-
-    -f/--file PATH
-      Load the starting grid from a text file, where each line is a row and
-      each character is a cell in that row. Periods (`.`) are interpreted as
-      dead cells; anything else is interpreted as a living cell.
-
-    -W/--min-width COLS
-      Minimum grid width. If the grid's width is less than COLS it will be
-      padded with empty columns up to the required width.
-
-    -H/--min-height ROWS
-      Minimum grid height. If the grid's height is less than ROWS it will
-      be padded with empty rows up to the required height.
-
-    -D/--dead-char CHAR
-      Output character for dead cells (default: "#{@options[:dead_char][:default]}").
-
-    -A/--alive-char CHAR
-      Output character for living cell (default: "#{@options[:alive_char][:default]}").
+  #{Conway.HelpFormatter.fmt_options(@options, max_width: 72, indent: 2)}
   """
 
   def main(argv \\ []) do
@@ -81,7 +113,7 @@ defmodule Conway.Cli do
   def run(opts) do
     defaults =
       @options
-      |> Enum.filter(fn {_, cfg} -> Keyword.has_key?(cfg, :default) end)
+      |> Enum.filter(fn {_, cfg} -> Map.has_key?(cfg, :default) end)
       |> Enum.map(fn {switch, cfg} -> {switch, cfg[:default]} end)
 
     opts = Keyword.merge(defaults, opts)
@@ -115,7 +147,7 @@ defmodule Conway.Cli do
 
     aliases =
       @options
-      |> Enum.filter(fn {_, cfg} -> Keyword.has_key?(cfg, :alias) end)
+      |> Enum.filter(fn {_, cfg} -> Map.has_key?(cfg, :alias) end)
       |> Enum.map(fn {switch, cfg} -> {cfg[:alias], switch} end)
 
     argv |> OptionParser.parse(strict: switches, aliases: aliases) |> validate()

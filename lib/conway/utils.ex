@@ -1,6 +1,9 @@
-defmodule Conway.HelpFormatter do
-  @wrap_defaults max_width: 72, indent: 0
+defmodule Conway.TextWrap do
+  @moduledoc """
+  Generic text wrap utility.
+  """
 
+  @wrap_defaults max_width: 72, indent: 0
   def wrap(text, opts \\ []) do
     opts = Keyword.merge(@wrap_defaults, opts)
 
@@ -11,7 +14,7 @@ defmodule Conway.HelpFormatter do
     |> Enum.join("\n\n")
   end
 
-  def wrap_paragraph(text, opts) do
+  defp wrap_paragraph(text, opts) do
     words = String.split(text, ~r/\s+/, trim: true)
     indent = String.duplicate(" ", opts[:indent])
     words |> assemble_lines([], "", opts[:max_width] - opts[:indent], indent) |> Enum.join("\n")
@@ -66,4 +69,57 @@ defmodule Conway.HelpFormatter do
 
   defp join_word("", word), do: word
   defp join_word(line, word), do: line <> " " <> word
+end
+
+defmodule Conway.HelpFormatter do
+  @moduledoc """
+  Generate help text from a map of options.
+  """
+  import Conway.TextWrap
+
+  def fmt_options(options, opts \\ []) do
+    options |> Enum.map(fn {name, cfg} -> fmt_option(name, cfg, opts) end) |> Enum.join("\n\n")
+  end
+
+  def fmt_option(long, cfg, opts \\ []) do
+    argspec =
+      [
+        get_and(cfg, :alias, "", &"-#{&1}/") <> "--#{long}",
+        case Map.fetch(cfg, :metavar) do
+          {:ok, metavar} ->
+            metavar |> String.trim() |> String.upcase()
+
+          :error ->
+            case Map.fetch(cfg, :choices) do
+              {:ok, choices} ->
+                "{#{Enum.join(choices, ",")}}"
+
+              :error ->
+                case cfg.type do
+                  :boolean -> ""
+                  type -> type |> to_string |> String.upcase()
+                end
+            end
+        end
+      ]
+      |> Enum.join(" ")
+      |> wrap(opts)
+
+    description =
+      [
+        get_and(cfg, :help, "", &String.trim/1),
+        get_and(cfg, :default, "", &"(default: #{&1})")
+      ]
+      |> Enum.join(" ")
+      |> wrap(Keyword.update(opts, :indent, 2, &(&1 + 2)))
+
+    [argspec, description] |> Enum.join("\n")
+  end
+
+  defp get_and(map, key, default, fun) do
+    case Map.fetch(map, key) do
+      {:ok, value} -> fun.(value)
+      :error -> default
+    end
+  end
 end
