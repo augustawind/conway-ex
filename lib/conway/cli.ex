@@ -84,6 +84,7 @@ defmodule Conway.Cli.AppInfo do
                 help: "Output character for living cells."
               }
             },
+            required: [[:file, :preset, :random]],
             mutually_exclusive_groups: [
               [:file],
               [:preset],
@@ -102,11 +103,17 @@ defmodule Conway.Cli do
     #{@app.name} - #{@app.summary}
 
   USAGE
-    #{@app.name} [--random] [--width N] [--height N] [--probability K] [OPTION]...
-    #{@app.name} --preset NAME [OPTION]...
-    #{@app.name} --file PATH [OPTION]...
-
-  #{Conway.Cli.Usage.TextWrap.wrap(@app.usage_text, max_width: 72, indent: 2)}
+  #{
+    Conway.Cli.Usage.fmt_usage(
+      @app.name,
+      @app.options,
+      @app.required,
+      @app.mutually_exclusive_groups,
+      @app.usage_text,
+      max_width: 72,
+      indent: 2
+    )
+  }
 
   OPTIONS
   #{Conway.Cli.Usage.fmt_options(@app.options, max_width: 72, indent: 2)}
