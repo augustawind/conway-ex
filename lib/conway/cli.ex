@@ -1,6 +1,4 @@
 defmodule Conway.Cli do
-  @progname "conway"
-
   @options [
     help: [type: :boolean],
     file: [type: :string, alias: :f],
@@ -14,18 +12,11 @@ defmodule Conway.Cli do
     dead_char: [type: :string, alias: :D, default: "."],
     alive_char: [type: :string, alias: :A, default: "*"]
   ]
-  @switches @options |> Enum.map(fn {switch, cfg} -> {switch, cfg[:type]} end)
-  @aliases @options
-           |> Enum.filter(fn {_, cfg} -> Keyword.has_key?(cfg, :alias) end)
-           |> Enum.map(fn {switch, cfg} -> {cfg[:alias], switch} end)
-  @defaults @options
-            |> Enum.filter(fn {_, cfg} -> Keyword.has_key?(cfg, :default) end)
-            |> Enum.map(fn {switch, cfg} -> {switch, cfg[:default]} end)
-
   @mutually_exclusive_groups [[:file], [:preset], [:random, :width, :height, :probability]]
 
-  @presets_dir Path.join("include", "patterns")
+  @progname "conway"
   @input_dead_char "."
+  @presets_dir Path.join("include", "patterns")
 
   @usage """
   NAME
@@ -48,14 +39,14 @@ defmodule Conway.Cli do
       Generate the starting grid randomly.
 
       -w/--width COLS
-        Number of columns in the generated grid (default: #{@defaults[:width]}).
+        Number of columns in the generated grid (default: #{@options[:width][:default]}).
 
       -h/--height ROWS
-        Number of rows of the generated grid (default: #{@defaults[:height]}).
+        Number of rows of the generated grid (default: #{@options[:height][:default]}).
 
       -k/--probability K
         Probability between [0, 1] that a cell will start alive in the
-        generated grid (default: #{@defaults[:probability]}).
+        generated grid (default: #{@options[:probability][:default]}).
 
     -p/--preset {#{Enum.join(@options[:preset][:choices], ",")}}
       Use a preset pattern for the starting grid.
@@ -74,10 +65,10 @@ defmodule Conway.Cli do
       be padded with empty rows up to the required height.
 
     -D/--dead-char CHAR
-      Output character for dead cells (default: "#{@defaults[:dead_char]}").
+      Output character for dead cells (default: "#{@options[:dead_char][:default]}").
 
     -A/--alive-char CHAR
-      Output character for living cell (default: "#{@defaults[:alive_char]}").
+      Output character for living cell (default: "#{@options[:alive_char][:default]}").
   """
 
   def main(argv \\ []) do
@@ -88,7 +79,12 @@ defmodule Conway.Cli do
   end
 
   def run(opts) do
-    opts = Keyword.merge(@defaults, opts)
+    defaults =
+      @options
+      |> Enum.filter(fn {_, cfg} -> Keyword.has_key?(cfg, :default) end)
+      |> Enum.map(fn {switch, cfg} -> {switch, cfg[:default]} end)
+
+    opts = Keyword.merge(defaults, opts)
     pattern = opts[:file] || opts[:preset]
     grid_opts = opts |> Keyword.take([:min_width, :min_height])
 
@@ -115,7 +111,14 @@ defmodule Conway.Cli do
   end
 
   def parse_args(argv) do
-    argv |> OptionParser.parse(strict: @switches, aliases: @aliases) |> validate()
+    switches = @options |> Enum.map(fn {switch, cfg} -> {switch, cfg[:type]} end)
+
+    aliases =
+      @options
+      |> Enum.filter(fn {_, cfg} -> Keyword.has_key?(cfg, :alias) end)
+      |> Enum.map(fn {switch, cfg} -> {cfg[:alias], switch} end)
+
+    argv |> OptionParser.parse(strict: switches, aliases: aliases) |> validate()
   end
 
   def validate({opts, rest, invalid}) do
@@ -152,7 +155,7 @@ defmodule Conway.Cli do
              "unexpected option #{opt}"
 
            {opt, value} ->
-             type = @switches[String.to_atom(opt)]
+             type = @options[String.to_atom(opt)][:type]
              "#{opt} expects a #{type}, got `#{value}`"
          end)}
     end
