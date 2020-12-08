@@ -98,31 +98,17 @@ defmodule Conway.Cli do
   @input_dead_char "."
   @presets_dir Path.join("include", "patterns")
 
-  @usage """
-  NAME
-    #{@app.name} - #{@app.summary}
-
-  USAGE
-  #{
-    Conway.Cli.Usage.fmt_usage(
-      @app.name,
-      @app.options,
-      @app.required,
-      @app.mutually_exclusive_groups,
-      @app.usage_text,
-      max_width: 72,
-      indent: 2
-    )
-  }
-
-  OPTIONS
-  #{Conway.Cli.Usage.fmt_options(@app.options, max_width: 72, indent: 2)}
-  """
-
   def main(argv \\ []) do
     case parse_args(argv) do
-      {:ok, opts} -> if opts[:help], do: IO.puts(:stderr, @usage), else: run(opts)
-      {:error, reason} -> print_error(reason)
+      {:ok, opts} ->
+        if opts[:help] do
+          IO.puts(:stderr, Conway.Cli.Usage.fmt(@app))
+        else
+          run(opts)
+        end
+
+      {:error, reason} ->
+        print_error(reason)
     end
   end
 
@@ -155,7 +141,7 @@ defmodule Conway.Cli do
   end
 
   def print_error(reason) do
-    IO.puts(:stderr, "#{@app.name}: error: #{reason}\n\n#{@usage}")
+    IO.puts(:stderr, "#{@app.name}: error: #{reason}\n\n#{Conway.Cli.Usage.fmt(@app)}")
   end
 
   def parse_args(argv) do

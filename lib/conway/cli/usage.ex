@@ -77,6 +77,34 @@ defmodule Conway.Cli.Usage do
   """
   import Conway.Cli.Usage.TextWrap
 
+  def fmt(app) do
+    opts = [max_width: 72, indent: 2]
+
+    """
+    NAME
+    #{fmt_name(app.name, app.summary, opts)}
+
+    USAGE
+    #{
+      fmt_usage(
+        app.name,
+        app.options,
+        app.required,
+        app.mutually_exclusive_groups,
+        app.usage_text,
+        opts
+      )
+    }
+
+    OPTIONS
+    #{fmt_options(app.options, opts)}
+    """
+  end
+
+  def fmt_name(progname, summary, opts \\ []) do
+    wrap("#{progname} - #{summary}", opts)
+  end
+
   def fmt_usage(progname, options, required, mutually_exclusive_groups, usage_text, opts \\ []) do
     usage_spec =
       Enum.map_join(mutually_exclusive_groups, "\n", fn group ->
