@@ -30,14 +30,27 @@ defmodule Conway.HelpFormatter do
         chars_left = width - line_len - 2
 
         {words, lines, next_line} =
-          if chars_left >= 2 do
-            # There's enough room to start the break on this line.
-            {left, right} = String.split_at(word, chars_left)
-            {[right | rest], [indent <> join_word(line, left) <> "-" | lines], ""}
-          else
-            # There isn't enough room to start the break, so start a new line with the broken word.
-            {left, right} = String.split_at(word, width - 1)
-            {[right | rest], [indent <> line | lines], left <> "-"}
+          case :binary.match(word, "-") do
+            {idx, _} when idx + 1 <= width ->
+              [left, right] = String.split(word, "-", parts: 2)
+              words = [right | rest]
+
+              if chars_left >= String.length(left) + 1 do
+                {words, [indent <> join_word(line, left) <> "-" | lines], ""}
+              else
+                {words, [indent <> line | lines], left <> "-"}
+              end
+
+            _ ->
+              if chars_left >= 2 do
+                # There's enough room to start the break on this line.
+                {left, right} = String.split_at(word, chars_left)
+                {[right | rest], [indent <> join_word(line, left) <> "-" | lines], ""}
+              else
+                # There isn't enough room to start the break, so start a new line with the broken word.
+                {left, right} = String.split_at(word, width - 1)
+                {[right | rest], [indent <> line | lines], left <> "-"}
+              end
           end
 
         assemble_lines(words, lines, next_line, width, indent)
