@@ -115,7 +115,7 @@ defmodule Conway.Cli do
   def run(opts) do
     defaults =
       @app.options
-      |> Enum.filter(fn {_, cfg} -> Map.has_key?(cfg, :default) end)
+      |> Stream.filter(fn {_, cfg} -> Map.has_key?(cfg, :default) end)
       |> Enum.map(fn {switch, cfg} -> {switch, cfg[:default]} end)
 
     opts = Keyword.merge(defaults, opts)
@@ -149,7 +149,7 @@ defmodule Conway.Cli do
 
     aliases =
       @app.options
-      |> Enum.filter(fn {_, cfg} -> Map.has_key?(cfg, :alias) end)
+      |> Stream.filter(fn {_, cfg} -> Map.has_key?(cfg, :alias) end)
       |> Enum.map(fn {switch, cfg} -> {cfg[:alias], switch} end)
 
     argv |> OptionParser.parse(strict: switches, aliases: aliases) |> validate()
