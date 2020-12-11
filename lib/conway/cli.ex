@@ -162,11 +162,8 @@ defmodule Conway.Cli do
          :ok <- validate_dimensions(opts, [:width, :height], 1),
          :ok <- validate_dimensions(opts, [:min_width, :min_height], 0),
          :ok <- validate_probability(opts),
-         :ok <- validate_char_args(opts),
-         {:ok, opts} <- process_file(opts) do
-      {:ok, opts}
-    else
-      {:error, reason} -> {:error, reason}
+         :ok <- validate_char_args(opts) do
+      process_file(opts)
     end
   end
 
