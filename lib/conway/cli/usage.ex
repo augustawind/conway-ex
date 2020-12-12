@@ -119,7 +119,7 @@ defmodule Conway.Cli.Usage do
     usage_spec =
       Enum.map_join(mutually_exclusive_groups, "\n", fn group ->
         option_text =
-          Enum.map(group, fn opt_name -> fmt_usage_opt(opt_name, options, required) end)
+          Enum.map(group, fn opt_name -> fmt_usage_opt(opt_name, options[opt_name], required) end)
 
         ([progname | option_text] ++ ["[OPTION]..."])
         |> Enum.join(" ")
@@ -129,10 +129,10 @@ defmodule Conway.Cli.Usage do
     usage_spec <> "\n\n" <> wrap(usage_text, opts)
   end
 
-  defp fmt_usage_opt(opt_name, options, required) do
+  defp fmt_usage_opt(opt_name, option, required) do
     is_required =
       Enum.find_value(required, false, fn group -> Enum.member?(group, opt_name) end) and
-        !Map.has_key?(options, :default)
+        !Map.has_key?(option, :default)
 
     if is_required do
       "--#{opt_name}"
