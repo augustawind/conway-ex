@@ -144,7 +144,7 @@ defmodule Conway.Cli do
 
   @spec print_error(binary()) :: :ok
   def print_error(reason) do
-    IO.puts(:stderr, "#{@app.name}: error: #{reason}\n\n#{Conway.Cli.Usage.fmt(@app)}")
+    IO.puts(:stderr, "#{@app.name}: error: #{reason}")
   end
 
   @spec parse_args([binary()]) :: {:ok, keyword()} | {:error, binary()}
@@ -212,7 +212,7 @@ defmodule Conway.Cli do
             conflicting_switch =
               groups
               |> List.delete(switches)
-              |> Enum.concat()
+              |> Stream.concat()
               |> Enum.find(&Keyword.has_key?(opts, &1))
 
             conflicting_switch && {switch, conflicting_switch}
@@ -224,7 +224,7 @@ defmodule Conway.Cli do
         :ok
 
       {switch1, switch2} ->
-        {:error, "options `#{switch1}` and `#{switch2}` are mutually exclusive"}
+        {:error, "options `--#{switch1}` and `--#{switch2}` are mutually exclusive"}
     end
   end
 

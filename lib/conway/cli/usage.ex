@@ -4,6 +4,9 @@ defmodule Conway.Cli.Usage.TextWrap do
   """
   @wrap_defaults max_width: 72, indent: 0
 
+  @doc """
+  Wraps and indents the given text to the specified parameters.
+  """
   @spec wrap(binary(), keyword()) :: binary()
   def wrap(text, opts \\ []) do
     opts = Keyword.merge(@wrap_defaults, opts)
@@ -36,6 +39,7 @@ defmodule Conway.Cli.Usage.TextWrap do
         {words, lines, next_line} =
           case :binary.match(word, "-") do
             {idx, _} when idx + 1 <= width ->
+              # There's a hyphen that can be split on on this line.
               [left, right] = String.split(word, "-", parts: 2)
               words = [right | rest]
 
@@ -46,12 +50,13 @@ defmodule Conway.Cli.Usage.TextWrap do
               end
 
             _ ->
+              # There's no hyphen that can be split on on this line.
               if chars_left >= 2 do
                 # There's enough room to start the break on this line.
                 {left, right} = String.split_at(word, chars_left)
                 {[right | rest], [indent <> join_word(line, left) <> "-" | lines], ""}
               else
-                # There isn't enough room to start the break, so start a new line with the broken word.
+                # There isn't room to start the break, so start a new line with the broken word.
                 {left, right} = String.split_at(word, width - 1)
                 {[right | rest], [indent <> line | lines], left <> "-"}
               end
@@ -63,7 +68,7 @@ defmodule Conway.Cli.Usage.TextWrap do
         assemble_lines(rest, [indent <> line | lines], word, width, indent)
       end
     else
-      # There's room, so add `word` to `line`.
+      # There's room on this line, so add `word` to it.
       assemble_lines(rest, lines, join_word(line, word), width, indent)
     end
   end
@@ -78,6 +83,9 @@ defmodule Conway.Cli.Usage do
   """
   import Conway.Cli.Usage.TextWrap
 
+  @doc """
+  Formats help/usage text from the given `AppInfo` struct.
+  """
   @spec fmt(%Conway.Cli.AppInfo{}) :: binary()
   def fmt(app) do
     opts = [max_width: 72, indent: 2]
