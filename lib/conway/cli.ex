@@ -5,9 +5,8 @@ defmodule Conway.Cli.AppInfo do
   defstruct name: "conway",
             summary: "a console implementation of Conway's Game of Life",
             usage_text: "\
-            The starting grid is determined by --random, --preset, or --file. \
-            Only one of these options can be present. If none are specified \
-            --random is assumed.",
+            The starting grid is determined by `--random`, `--preset`, or `--file`. \
+            Exactly one of these options must be provided.",
             options: %{
               help: %{type: :boolean, help: "Show help text."},
               file: %{
