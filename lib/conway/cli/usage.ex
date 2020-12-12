@@ -130,16 +130,14 @@ defmodule Conway.Cli.Usage do
   end
 
   defp fmt_usage_opt(opt_name, options, required) do
-    opt_text = "--#{opt_name}"
-
     is_required =
       Enum.find_value(required, false, fn group -> Enum.member?(group, opt_name) end) and
         !Map.has_key?(options, :default)
 
     if is_required do
-      opt_text
+      "--#{opt_name}"
     else
-      "[#{opt_text}]"
+      "[--#{opt_name}]"
     end
   end
 
