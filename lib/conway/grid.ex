@@ -2,11 +2,11 @@ defmodule Conway.Grid do
   @moduledoc """
   A Grid represents cell states (alive, dead) for each {x,y} coordinate in Conway's Game of Life.
   """
-  @typedoc "A point is an {x,y} coordinate in a Grid."
+  @typedoc "An {x,y} coordinate in a Grid."
   @type point :: {non_neg_integer(), non_neg_integer()}
-  @typedoc "A grid is a 2-d list of cell states."
+  @typedoc "A 2-d list of cell states."
   @type grid :: [[boolean()]]
-  @typedoc "Alias for the type `grid()`."
+  @typedoc "Alias for `grid()`."
   @type t :: grid()
 
   ### Constructors
