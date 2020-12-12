@@ -126,9 +126,9 @@ defmodule Conway.Cli do
   @spec run(keyword()) :: :ok
   def run(opts) do
     defaults =
-      @app.options
-      |> Stream.filter(fn {_, cfg} -> Map.has_key?(cfg, :default) end)
-      |> Enum.map(fn {switch, cfg} -> {switch, cfg[:default]} end)
+      for {switch, cfg} <- @app.options, Map.has_key?(cfg, :default) do
+        {switch, cfg[:default]}
+      end
 
     opts = Keyword.merge(defaults, opts)
     pattern = opts[:file] || opts[:preset]
@@ -159,12 +159,12 @@ defmodule Conway.Cli do
 
   @spec parse_args([binary()]) :: {:ok, keyword()} | {:error, binary()}
   def parse_args(argv) do
-    switches = @app.options |> Enum.map(fn {switch, cfg} -> {switch, cfg[:type]} end)
+    switches = for {switch, cfg} <- @app.options, do: {switch, cfg[:type]}
 
     aliases =
-      @app.options
-      |> Stream.filter(fn {_, cfg} -> Map.has_key?(cfg, :alias) end)
-      |> Enum.map(fn {switch, cfg} -> {cfg[:alias], switch} end)
+      for {switch, cfg} <- @app.options, Map.has_key?(cfg, :alias) do
+        {cfg[:alias], switch}
+      end
 
     argv |> OptionParser.parse(strict: switches, aliases: aliases) |> validate()
   end
