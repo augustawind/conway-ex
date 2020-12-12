@@ -59,15 +59,14 @@ defmodule Conway.Grid do
     min_height = Keyword.get(options, :min_height, 0)
 
     grid =
-      1..height
-      |> Enum.map(fn _ ->
-        1..width |> Enum.map(fn _ -> :rand.uniform() < k end)
-      end)
+      for _ <- 1..height do
+        for _ <- 1..width, do: :rand.uniform() < k
+      end
 
     # Pad to min_width
     grid =
       case min_width - width do
-        n when n > 0 -> Enum.map(grid, fn row -> row ++ List.duplicate(false, n) end)
+        n when n > 0 -> for row <- grid, do: row ++ List.duplicate(false, n)
         _ -> grid
       end
 
@@ -133,7 +132,7 @@ defmodule Conway.Grid do
   @spec count_live_neighbors(grid(), point()) :: {:ok, non_neg_integer()} | :error
   def count_live_neighbors(grid, {x, y}) do
     if in_bounds(grid, {x, y}) do
-      neighbors = Enum.map(@deltas, fn {dx, dy} -> get_cell(grid, {x + dx, y + dy}) end)
+      neighbors = for {dx, dy} <- @deltas, do: get_cell(grid, {x + dx, y + dy})
       {:ok, Enum.count(neighbors, & &1)}
     else
       :error
