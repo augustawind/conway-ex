@@ -25,7 +25,6 @@ defmodule Conway.Cli.AppInfo do
               random: %{
                 type: :boolean,
                 alias: :r,
-                default: true,
                 help: "Generate the starting grid randomly."
               },
               width: %{
@@ -162,14 +161,24 @@ defmodule Conway.Cli do
   @spec validate({keyword(), [binary()], [{binary(), nil | binary()}]}) ::
           {:ok, keyword()} | {:error, binary()}
   def validate({opts, rest, invalid}) do
-    with :ok <- validate_no_remaining_args(rest),
+    with :ok <- validate_help_flag(opts),
+         :ok <- validate_no_remaining_args(rest),
          :ok <- validate_no_invalid_args(invalid),
          :ok <- validate_mutually_exclusive_groups(opts, @app.mutually_exclusive_groups),
+         :ok <- validate_required(opts, @app.required),
          :ok <- validate_dimensions(opts, [:width, :height], 1),
          :ok <- validate_dimensions(opts, [:min_width, :min_height], 0),
          :ok <- validate_probability(opts),
          :ok <- validate_char_args(opts) do
       process_file(opts)
+    end
+  end
+
+  @spec validate_help_flag(keyword()) :: {:ok, keyword()} | :ok
+  def validate_help_flag(opts) do
+    case opts[:help] do
+      true -> {:ok, opts}
+      _ -> :ok
     end
   end
 
@@ -226,6 +235,22 @@ defmodule Conway.Cli do
       {switch1, switch2} ->
         {:error, "options `--#{switch1}` and `--#{switch2}` are mutually exclusive"}
     end
+  end
+
+  def validate_required(opts, required) do
+    Enum.find_value(required, fn switches ->
+      case Enum.find(switches, &Keyword.has_key?(opts, &1)) do
+        nil when length(switches) > 1 ->
+          switch_text = Enum.map_join(switches, ",", &"`--#{&1}`")
+          {:error, "one of #{switch_text} is required"}
+
+        nil ->
+          {:error, "option `--#{hd(switches)}` is required"}
+
+        _ ->
+          :ok
+      end
+    end)
   end
 
   @spec validate_dimensions(keyword(), [atom()], integer()) :: :ok | {:error, binary()}
