@@ -98,6 +98,7 @@ defmodule Conway.Cli do
   @input_dead_char "."
   @presets_dir Path.join("include", "patterns")
 
+  @spec main([binary()]) :: :ok
   def main(argv \\ []) do
     case parse_args(argv) do
       {:ok, opts} ->
@@ -112,6 +113,7 @@ defmodule Conway.Cli do
     end
   end
 
+  @spec run(keyword()) :: :ok
   def run(opts) do
     defaults =
       @app.options
@@ -140,10 +142,12 @@ defmodule Conway.Cli do
     end
   end
 
+  @spec print_error(binary()) :: :ok
   def print_error(reason) do
     IO.puts(:stderr, "#{@app.name}: error: #{reason}\n\n#{Conway.Cli.Usage.fmt(@app)}")
   end
 
+  @spec parse_args([binary()]) :: {:ok, keyword()} | {:error, binary()}
   def parse_args(argv) do
     switches = @app.options |> Enum.map(fn {switch, cfg} -> {switch, cfg[:type]} end)
 
@@ -155,6 +159,8 @@ defmodule Conway.Cli do
     argv |> OptionParser.parse(strict: switches, aliases: aliases) |> validate()
   end
 
+  @spec validate({keyword(), [binary()], [{binary(), nil | binary()}]}) ::
+          {:ok, keyword()} | {:error, binary()}
   def validate({opts, rest, invalid}) do
     with :ok <- validate_no_remaining_args(rest),
          :ok <- validate_no_invalid_args(invalid),
@@ -167,6 +173,7 @@ defmodule Conway.Cli do
     end
   end
 
+  @spec validate_no_remaining_args([binary()]) :: :ok | {:error, binary()}
   def validate_no_remaining_args(argv) do
     case argv do
       [] -> :ok
@@ -174,6 +181,7 @@ defmodule Conway.Cli do
     end
   end
 
+  @spec validate_no_invalid_args([{binary(), nil | binary()}]) :: :ok | {:error, binary()}
   def validate_no_invalid_args(invalid) do
     case invalid do
       [] ->
@@ -192,6 +200,7 @@ defmodule Conway.Cli do
     end
   end
 
+  @spec validate_mutually_exclusive_groups(keyword(), [[atom()]]) :: :ok | {:error, binary()}
   def validate_mutually_exclusive_groups(opts, groups) do
     result =
       Enum.find_value(groups, fn switches ->
@@ -219,6 +228,7 @@ defmodule Conway.Cli do
     end
   end
 
+  @spec validate_dimensions(keyword(), [atom()], integer()) :: :ok | {:error, binary()}
   def validate_dimensions(opts, switches, min_value) do
     result =
       switches
@@ -235,20 +245,15 @@ defmodule Conway.Cli do
     end
   end
 
+  @spec validate_probability(keyword()) :: :ok | {:error, binary()}
   def validate_probability(opts) do
     case opts[:probability] do
-      nil ->
-        :ok
-
-      k ->
-        if k < 0 or k > 1 do
-          {:error, "--probability must be in the range [0, 1]"}
-        else
-          :ok
-        end
+      k when k in 0..1 -> {:error, "--probability must be in the range [0, 1]"}
+      _ -> :ok
     end
   end
 
+  @spec validate_char_args(keyword()) :: :ok | {:error, binary()}
   def validate_char_args(opts) do
     result =
       [:char_dead, :char_alive]
@@ -265,6 +270,7 @@ defmodule Conway.Cli do
     end
   end
 
+  @spec process_file(keyword()) :: {:ok, keyword()} | {:error, binary()}
   def process_file(opts) do
     preset = opts[:preset]
     file = opts[:file]
@@ -274,7 +280,7 @@ defmodule Conway.Cli do
       {option, path} ->
         case File.read(path) do
           {:ok, s} -> {:ok, Keyword.replace(opts, option, s)}
-          error -> error
+          {:error, reason} -> {:error, :file.format_error(reason) |> List.to_string()}
         end
 
       nil ->
