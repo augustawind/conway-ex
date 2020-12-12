@@ -13,7 +13,7 @@ defmodule Conway.Grid do
 
   @strconv_opts %{dead_char: ".", alive_char: "*"}
 
-  @spec from_string(binary(), keyword()) :: {:ok, grid()} | {:error, binary()}
+  @spec from_string(String.t(), keyword()) :: {:ok, grid()} | {:error, String.t()}
   def from_string(s, options \\ []) do
     dead_char = Keyword.get(options, :dead_char, @strconv_opts.dead_char)
     min_width = Keyword.get(options, :min_width, 0)
@@ -48,7 +48,7 @@ defmodule Conway.Grid do
     end
   end
 
-  @spec from_string!(binary(), keyword()) :: grid()
+  @spec from_string!(String.t(), keyword()) :: grid()
   def from_string!(s, options \\ []) do
     case from_string(s, options) do
       {:ok, grid} -> grid
@@ -82,7 +82,7 @@ defmodule Conway.Grid do
 
   ### String output
 
-  @spec to_string(grid(), keyword()) :: binary()
+  @spec to_string(grid(), keyword()) :: String.t()
   def to_string(grid, options \\ []) do
     %{dead_char: dead, alive_char: live} = Enum.into(options, @strconv_opts)
 

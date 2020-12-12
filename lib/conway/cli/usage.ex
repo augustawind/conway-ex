@@ -7,7 +7,7 @@ defmodule Conway.Cli.Usage.TextWrap do
   @doc """
   Wraps and indents the given text to the specified parameters.
   """
-  @spec wrap(binary(), keyword()) :: binary()
+  @spec wrap(String.t(), keyword()) :: String.t()
   def wrap(text, opts \\ []) do
     opts = Keyword.merge(@wrap_defaults, opts)
 
@@ -86,7 +86,7 @@ defmodule Conway.Cli.Usage do
   @doc """
   Formats help/usage text from the given `AppInfo` struct.
   """
-  @spec fmt(%Conway.Cli.AppInfo{}) :: binary()
+  @spec fmt(%Conway.Cli.AppInfo{}) :: String.t()
   def fmt(app) do
     opts = [max_width: 72, indent: 2]
 

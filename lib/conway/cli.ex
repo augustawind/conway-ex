@@ -108,7 +108,7 @@ defmodule Conway.Cli do
   @input_dead_char "."
   @presets_dir Path.join("include", "patterns")
 
-  @spec main([binary()]) :: :ok
+  @spec main([String.t()]) :: :ok
   def main(argv \\ []) do
     case parse_args(argv) do
       {:ok, opts} ->
@@ -152,12 +152,12 @@ defmodule Conway.Cli do
     end
   end
 
-  @spec print_error(binary()) :: :ok
+  @spec print_error(String.t()) :: :ok
   def print_error(reason) do
     IO.puts(:stderr, "#{@app.name}: error: #{reason}")
   end
 
-  @spec parse_args([binary()]) :: {:ok, keyword()} | {:error, binary()}
+  @spec parse_args([String.t()]) :: {:ok, keyword()} | {:error, String.t()}
   def parse_args(argv) do
     switches = for {switch, cfg} <- @app.options, do: {switch, cfg[:type]}
 
@@ -169,8 +169,8 @@ defmodule Conway.Cli do
     argv |> OptionParser.parse(strict: switches, aliases: aliases) |> validate()
   end
 
-  @spec validate({keyword(), [binary()], [{binary(), nil | binary()}]}) ::
-          {:ok, keyword()} | {:error, binary()}
+  @spec validate({keyword(), [String.t()], [{String.t(), nil | String.t()}]}) ::
+          {:ok, keyword()} | {:error, String.t()}
   def validate({opts, rest, invalid}) do
     with :ok <- validate_help_flag(opts),
          :ok <- validate_no_remaining_args(rest),
@@ -194,7 +194,7 @@ defmodule Conway.Cli do
     end
   end
 
-  @spec validate_no_remaining_args([binary()]) :: :ok | {:error, binary()}
+  @spec validate_no_remaining_args([String.t()]) :: :ok | {:error, String.t()}
   def validate_no_remaining_args(argv) do
     case argv do
       [] -> :ok
@@ -202,7 +202,7 @@ defmodule Conway.Cli do
     end
   end
 
-  @spec validate_no_invalid_args([{binary(), nil | binary()}]) :: :ok | {:error, binary()}
+  @spec validate_no_invalid_args([{String.t(), nil | String.t()}]) :: :ok | {:error, String.t()}
   def validate_no_invalid_args(invalid) do
     case invalid do
       [] ->
@@ -221,7 +221,7 @@ defmodule Conway.Cli do
     end
   end
 
-  @spec validate_mutually_exclusive_groups(keyword(), [[atom()]]) :: :ok | {:error, binary()}
+  @spec validate_mutually_exclusive_groups(keyword(), [[atom()]]) :: :ok | {:error, String.t()}
   def validate_mutually_exclusive_groups(opts, groups) do
     result =
       Enum.find_value(groups, fn switches ->
@@ -265,7 +265,7 @@ defmodule Conway.Cli do
     end)
   end
 
-  @spec validate_dimensions(keyword(), [atom()], integer()) :: :ok | {:error, binary()}
+  @spec validate_dimensions(keyword(), [atom()], integer()) :: :ok | {:error, String.t()}
   def validate_dimensions(opts, switches, min_value) do
     result =
       switches
@@ -282,7 +282,7 @@ defmodule Conway.Cli do
     end
   end
 
-  @spec validate_probability(keyword()) :: :ok | {:error, binary()}
+  @spec validate_probability(keyword()) :: :ok | {:error, String.t()}
   def validate_probability(opts) do
     case opts[:probability] do
       k when k in 0..1 -> {:error, "--probability must be in the range [0, 1]"}
@@ -290,7 +290,7 @@ defmodule Conway.Cli do
     end
   end
 
-  @spec validate_delay(keyword()) :: :ok | {:error, binary()}
+  @spec validate_delay(keyword()) :: :ok | {:error, String.t()}
   def validate_delay(opts) do
     case opts[:delay] do
       delay when delay < 0 -> {:error, "--delay must be a positive integer"}
@@ -298,7 +298,7 @@ defmodule Conway.Cli do
     end
   end
 
-  @spec validate_char_args(keyword()) :: :ok | {:error, binary()}
+  @spec validate_char_args(keyword()) :: :ok | {:error, String.t()}
   def validate_char_args(opts) do
     result =
       [:char_dead, :char_alive]
@@ -315,7 +315,7 @@ defmodule Conway.Cli do
     end
   end
 
-  @spec process_file(keyword()) :: {:ok, keyword()} | {:error, binary()}
+  @spec process_file(keyword()) :: {:ok, keyword()} | {:error, String.t()}
   def process_file(opts) do
     preset = opts[:preset]
     file = opts[:file]
