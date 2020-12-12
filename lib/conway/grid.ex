@@ -1,8 +1,8 @@
 defmodule Conway.Grid do
   @moduledoc """
-  A Grid represents cell states (alive, dead) for each {x,y} coordinate in Conway's Game of Life.
+  A grid represents cell states (alive, dead) for each {x,y} coordinate in Conway's Game of Life.
   """
-  @typedoc "An {x,y} coordinate in a Grid."
+  @typedoc "An {x,y} coordinate in a grid."
   @type point :: {non_neg_integer(), non_neg_integer()}
   @typedoc "A 2-d list of cell states."
   @type grid :: [[boolean()]]
@@ -12,23 +12,22 @@ defmodule Conway.Grid do
   ### Constructors
 
   @strconv_opts %{dead_char: ".", alive_char: "*"}
+  @gen_grid_opts %{min_width: 0, min_height: 0, dead_char: @strconv_opts.dead_char}
 
   @spec from_string(String.t(), keyword()) :: {:ok, grid()} | {:error, String.t()}
   def from_string(s, options \\ []) do
-    dead_char = Keyword.get(options, :dead_char, @strconv_opts.dead_char)
-    min_width = Keyword.get(options, :min_width, 0)
-    min_height = Keyword.get(options, :min_height, 0)
+    opts = Enum.into(options, @gen_grid_opts)
 
     rows = String.split(s, "\n", trim: true)
 
     if Enum.empty?(rows) do
       {:error, "grid must have at least one row"}
     else
-      width = max(min_width, rows |> Enum.map(&String.length/1) |> Enum.max())
+      width = max(opts.min_width, rows |> Enum.map(&String.length/1) |> Enum.max())
 
       grid =
         Enum.map(rows, fn line ->
-          row = line |> String.graphemes() |> Enum.map(&(&1 != dead_char))
+          row = line |> String.graphemes() |> Enum.map(&(&1 != opts.dead_char))
 
           # Pad to min_width
           case width - length(row) do
@@ -39,7 +38,7 @@ defmodule Conway.Grid do
 
       # Pad to min_height
       grid =
-        case min_height - length(grid) do
+        case opts.min_height - length(grid) do
           n when n > 0 -> grid ++ List.duplicate(List.duplicate(false, width), n)
           _ -> grid
         end
@@ -58,8 +57,7 @@ defmodule Conway.Grid do
 
   @spec random(pos_integer(), pos_integer(), float(), keyword()) :: grid()
   def random(width, height, k, options \\ []) do
-    min_width = Keyword.get(options, :min_width, 0)
-    min_height = Keyword.get(options, :min_height, 0)
+    %{min_width: min_width, min_height: min_height} = Enum.into(options, @gen_grid_opts)
 
     grid =
       for _ <- 1..height do
