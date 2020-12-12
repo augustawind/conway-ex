@@ -14,7 +14,7 @@ defmodule Conway do
   def main_loop(grid, options \\ []) do
     receive do
     after
-      500 ->
+      Keyword.fetch!(options, :delay) ->
         case Grid.step(grid) do
           nil ->
             IO.puts("\nSimulation has become stable.")

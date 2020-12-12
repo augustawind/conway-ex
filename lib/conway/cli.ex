@@ -70,7 +70,13 @@ defmodule Conway.Cli.AppInfo do
               Minimum grid height. If the grid's height is less than ROWS it will be padded with \
               empty rows up to the required height."
               },
-              # delay: [type: :integer, alias: :d, default: 500, help: ""],
+              delay: %{
+                type: :integer,
+                alias: :d,
+                default: 500,
+                metavar: "DELAY",
+                help: "Delay in milliseconds between each tick of the game."
+              },
               dead_char: %{
                 type: :string,
                 alias: :D,
@@ -175,6 +181,7 @@ defmodule Conway.Cli do
          :ok <- validate_dimensions(opts, [:width, :height], 1),
          :ok <- validate_dimensions(opts, [:min_width, :min_height], 0),
          :ok <- validate_probability(opts),
+         :ok <- validate_delay(opts),
          :ok <- validate_char_args(opts) do
       process_file(opts)
     end
@@ -280,6 +287,14 @@ defmodule Conway.Cli do
   def validate_probability(opts) do
     case opts[:probability] do
       k when k in 0..1 -> {:error, "--probability must be in the range [0, 1]"}
+      _ -> :ok
+    end
+  end
+
+  @spec validate_delay(keyword()) :: :ok | {:error, binary()}
+  def validate_delay(opts) do
+    case opts[:delay] do
+      delay when delay < 0 -> {:error, "--delay must be a positive integer"}
       _ -> :ok
     end
   end
