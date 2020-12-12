@@ -1,4 +1,7 @@
 defmodule Conway.Grid do
+  @moduledoc """
+  A Grid represents cell states (alive, dead) for each `{x, y}` coordinate in Conway's Game of Life.
+  """
   @type point :: {non_neg_integer(), non_neg_integer()}
   @type grid :: [[boolean()]]
   @type t :: grid()

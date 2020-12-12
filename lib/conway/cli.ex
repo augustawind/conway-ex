@@ -1,4 +1,7 @@
 defmodule Conway.Cli.AppInfo do
+  @moduledoc """
+  This module contains a struct defining CLI options.
+  """
   defstruct name: "conway",
             summary: "a console implementation of Conway's Game of Life",
             usage_text: "\
@@ -92,8 +95,11 @@ defmodule Conway.Cli.AppInfo do
 end
 
 defmodule Conway.Cli do
+  @moduledoc """
+  This module defines the command line interface for the `conway` app.
+  It is the program's main entrypoint.
+  """
   @app %Conway.Cli.AppInfo{}
-
   @input_dead_char "."
   @presets_dir Path.join("include", "patterns")
 
