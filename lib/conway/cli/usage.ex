@@ -2,15 +2,16 @@ defmodule Conway.Cli.Usage.TextWrap do
   @moduledoc """
   Generic text wrap utility.
   """
-
   @wrap_defaults max_width: 72, indent: 0
+
+  @spec wrap(binary(), keyword()) :: binary()
   def wrap(text, opts \\ []) do
     opts = Keyword.merge(@wrap_defaults, opts)
 
     blocks = String.split(text, ~r/\n{2,}/, trim: true)
 
     blocks
-    |> Enum.map(fn s -> wrap_paragraph(s, opts) end)
+    |> Enum.map(&wrap_paragraph(&1, opts))
     |> Enum.join("\n\n")
   end
 
@@ -77,6 +78,7 @@ defmodule Conway.Cli.Usage do
   """
   import Conway.Cli.Usage.TextWrap
 
+  @spec fmt(%Conway.Cli.AppInfo{}) :: binary()
   def fmt(app) do
     opts = [max_width: 72, indent: 2]
 
@@ -101,11 +103,11 @@ defmodule Conway.Cli.Usage do
     """
   end
 
-  def fmt_name(progname, summary, opts \\ []) do
+  defp fmt_name(progname, summary, opts) do
     wrap("#{progname} - #{summary}", opts)
   end
 
-  def fmt_usage(progname, options, required, mutually_exclusive_groups, usage_text, opts \\ []) do
+  defp fmt_usage(progname, options, required, mutually_exclusive_groups, usage_text, opts) do
     usage_spec =
       Enum.map_join(mutually_exclusive_groups, "\n", fn group ->
         option_text =
@@ -132,11 +134,11 @@ defmodule Conway.Cli.Usage do
       !Map.has_key?(option, :default)
   end
 
-  def fmt_options(options, opts \\ []) do
+  defp fmt_options(options, opts) do
     options |> Enum.map_join("\n\n", fn {name, cfg} -> fmt_option(name, cfg, opts) end)
   end
 
-  def fmt_option(long, cfg, opts \\ []) do
+  defp fmt_option(long, cfg, opts) do
     argspec =
       [
         get_and(cfg, :alias, "", &"-#{&1}/") <> "--#{long}",
